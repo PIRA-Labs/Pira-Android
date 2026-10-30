@@ -9,6 +9,7 @@
   <EditText android:id="@+id/model" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Nebius model ID (from /v1/models)" android:layout_marginTop="12dp" />
   <EditText android:id="@+id/prompt" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Ask the model something" />
   <Button android:id="@+id/testNebius" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="TEST NEBIUS TEXT" />
+  <Button android:id="@+id/discoverModels" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="DISCOVER AVAILABLE MODELS" />
   <Button android:id="@+id/look" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="LOOK AT SOMETHING" android:layout_marginTop="16dp" />
   <Button android:id="@+id/denyTest" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="RUN SECURITY DENIAL TEST" android:layout_marginTop="8dp" />
   <Button android:id="@+id/stop" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="EMERGENCY STOP" android:layout_marginTop="8dp" />

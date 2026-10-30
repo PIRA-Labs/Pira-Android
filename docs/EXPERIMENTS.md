@@ -11,3 +11,5 @@
 | E-007 | Xiaomi/XMS adapter works in PIRA | Not Tested | Inherited research only; no production adapter restored. |
 | E-008 | Revocation blocks device execution | Partially implemented | Emergency stop is tested; complete revocation UI/storage remains. |
 | E-009 | Policy denies adversarial proposals | Passed | `PolicyEngineTest`: missing, expired, reused, mismatched, modified, and emergency-stop cases. |
+| E-010 | Unauthenticated Nebius model discovery | Blocked | 2026-10-30: `GET https://api.tokenfactory.nebius.com/v1/models` returned HTTP 401 `token is not present`; no key was available in the environment. |
+| E-011 | NVIDIA model inference through Nebius | Blocked | Requires E-010 with a real key; do not claim hackathon compliance until a live NVIDIA response is captured. |

@@ -34,6 +34,7 @@ class MainActivity : AppCompatActivity() {
             status.text = "Model connection configured — hardware access remains separate"; audit.text = logger.last()
         }
         findViewById<Button>(R.id.testNebius).setOnClickListener { runNebiusTest() }
+        findViewById<Button>(R.id.discoverModels).setOnClickListener { discoverModels() }
         findViewById<Button>(R.id.look).setOnClickListener { requestCameraAction() }
         findViewById<Button>(R.id.denyTest).setOnClickListener {
             val decision = policy.evaluate(ActionProposal(Capability.CAMERA_LOOK), null)
@@ -43,6 +44,14 @@ class MainActivity : AppCompatActivity() {
             getSharedPreferences("pira_security", MODE_PRIVATE).edit().putBoolean("emergency_stop", true).apply()
             logger.record("Emergency stop enabled"); status.text = "EMERGENCY STOP ACTIVE — execution blocked"; audit.text = logger.last()
         }
+    }
+    private fun discoverModels() {
+        if (!nebius.hasKey()) { status.text = "Connect a Nebius key first"; return }
+        status.text = "Discovering models…"
+        Thread {
+            try { val response = nebius.models(); runOnUiThread { status.text = "Available models:\n${response.take(1800)}"; logger.record("Nebius model discovery completed"); audit.text = logger.last() } }
+            catch (error: Exception) { runOnUiThread { status.text = "Model discovery error: ${error.message ?: error.javaClass.simpleName}"; logger.record("Nebius model discovery failed"); audit.text = logger.last() } }
+        }.start()
     }
     private fun runNebiusTest() {
         if (!nebius.hasKey()) { status.text = "Connect a Nebius key first"; return }

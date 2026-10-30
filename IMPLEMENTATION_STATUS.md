@@ -7,6 +7,7 @@ This is a new isolated Android workspace. The original `taak-companion` reposito
 - Debug APK builds successfully with Homebrew JDK 17.
 - Policy unit tests pass, including expiry, replay, parameter binding, scope mismatch, and emergency-stop denial.
 - Nebius client uses the verified OpenAI-compatible base URL `https://api.tokenfactory.nebius.com/v1/`, Bearer authentication, `GET /models`, and `POST /chat/completions`.
+- Mission 4 live check: unauthenticated `GET /v1/models` returned HTTP 401 (`token is not present`); no NVIDIA model ID has been confirmed for this account.
 
 ### Inherited research
 
