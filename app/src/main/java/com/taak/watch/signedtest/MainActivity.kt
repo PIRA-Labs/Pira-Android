@@ -121,7 +121,12 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.clearSetup).visibility = View.VISIBLE
         findViewById<TextView>(R.id.brainGreeting).text = "Connect your tools"
         status.text = "Connections"
-        findViewById<TextView>(R.id.currentSetup).text = if (nebius.hasKey()) "Current setup: Nebius key saved" else "No active setup"
+        findViewById<TextView>(R.id.currentSetup).text = when {
+            nebius.hasKey() && tavily.hasKey() -> "Connected: Nebius brain + Tavily search"
+            nebius.hasKey() -> "Connected: Nebius brain · Search not connected"
+            tavily.hasKey() -> "Connected: Tavily search · Brain not connected"
+            else -> "No active connections"
+        }
     }
     private fun closeConnections() {
         findViewById<View>(R.id.brainPanel).visibility = View.GONE
