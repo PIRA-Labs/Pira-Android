@@ -2,6 +2,7 @@ package com.taak.watch.signedtest
 
 import android.Manifest
 import android.content.Intent
+import android.speech.RecognizerIntent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.MediaStore
@@ -19,6 +20,7 @@ import androidx.core.content.ContextCompat
 
 class MainActivity : AppCompatActivity() {
     private val cameraRequest = 41
+    private val voiceRequest = 77
     private lateinit var status: TextView
     private lateinit var audit: TextView
     private lateinit var keyInput: EditText
@@ -71,6 +73,7 @@ class MainActivity : AppCompatActivity() {
             status.text = "Credential saved — discover models to verify connection"; findViewById<TextView>(R.id.connectionState).text = "●  SAVED"; audit.text = logger.last()
         }
         findViewById<Button>(R.id.testNebius).setOnClickListener { runNebiusTest() }
+        findViewById<Button>(R.id.voiceNote).setOnClickListener { startVoiceNote() }
         findViewById<Button>(R.id.saveTavily).setOnClickListener { saveTavilyKey() }
         findViewById<Button>(R.id.searchWeb).setOnClickListener { runTavilySearch() }
         findViewById<Button>(R.id.discoverModels).setOnClickListener { discoverModels() }
@@ -172,11 +175,24 @@ class MainActivity : AppCompatActivity() {
         if (!nebius.hasKey()) { status.text = "Connect a Nebius key first"; return }
         val model = selectedModelId ?: ""; val prompt = promptInput.text.toString().trim()
         if (model.isEmpty() || prompt.isEmpty()) { status.text = "Enter a model ID and prompt"; return }
+        sendChatMessage(prompt)
+    }
+    private fun sendChatMessage(prompt: String) {
+        val model = selectedModelId ?: ""
+        if (model.isEmpty() || prompt.isBlank()) return
         status.text = "Calling Nebius…"
         Thread {
-            try { val response = nebius.chat(model, prompt); runOnUiThread { chatTranscript.visibility = View.VISIBLE; chatTranscript.text = "You\n$prompt\n\nPIRA\n${humanizeModelResponse(response)}"; status.text = "PIRA replied"; logger.record("Nebius text request completed"); audit.text = logger.last() } }
+            try { val response = nebius.chat(model, prompt); runOnUiThread { chatTranscript.visibility = View.VISIBLE; val previous = chatTranscript.text.toString().trim(); val turn = "You\n$prompt\n\nPIRA\n${humanizeModelResponse(response)}"; chatTranscript.text = if (previous.isBlank()) turn else "$previous\n\n────────\n\n$turn"; promptInput.text?.clear(); status.text = "PIRA replied"; logger.record("Nebius text request completed"); audit.text = logger.last() } }
             catch (error: Exception) { runOnUiThread { status.text = "Nebius error: ${error.message ?: error.javaClass.simpleName}"; logger.record("Nebius request denied/failed"); audit.text = logger.last() } }
         }.start()
+    }
+    private fun startVoiceNote() {
+        if (!nebius.hasKey() || selectedModelId.isNullOrBlank()) { status.text = "Connect your brain and choose a model first"; return }
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_PROMPT, "Talk to PIRA")
+        }
+        try { startActivityForResult(intent, voiceRequest) } catch (_: Exception) { status.text = "Voice input is not available on this device" }
     }
     private fun requestCameraAction() {
         val parameters = mapOf("prompt" to "user initiated")
@@ -198,6 +214,10 @@ class MainActivity : AppCompatActivity() {
             status.text = "Photo captured — ready for a user-approved look"
             logger.record("Authorized camera capture completed; image is not retained")
             audit.text = logger.last()
+        }
+        if (requestCode == voiceRequest && resultCode == RESULT_OK) {
+            val spoken = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull().orEmpty()
+            if (spoken.isNotBlank()) { promptInput.setText(spoken); sendChatMessage(spoken) }
         }
     }
 
