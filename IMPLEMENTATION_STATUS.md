@@ -15,6 +15,7 @@ This is a new isolated Android workspace. The original `taak-companion` reposito
 - Tavily: separate Keystore alias, fixed HTTPS `/search` client, basic depth/max 5, typed scoped proposal/authorization, emergency-stop gate, and result rendering implemented; live API response pending physical authorization and user-provided key.
 - Tavily physical smoke test passed: APK launched on HONOR VNE-LX3; live search remains unverified until key entry.
 - Nebius onboarding correction: saved-key state now restores on launch; model catalog is parsed into clickable selectable rows with NVIDIA/Nemotron prioritization instead of raw JSON.
+- Brain UX correction: ask, web search, and provider settings are now separate modes; default Brain no longer exposes API/device configuration.
 
 ### Inherited research
 
