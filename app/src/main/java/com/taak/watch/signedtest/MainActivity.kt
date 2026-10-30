@@ -251,8 +251,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun humanizeModelResponse(raw: String): String {
+        fun clean(value: String): String = value.replace("\\\\n", "\\n").replace("\\\\r", "").replace("\\\\t", " ").replace("\\\\\"", "\\\"").trim()
         val content = Regex("\\\"content\\\"\\s*:\\s*\\\"((?:\\\\.|[^\\\"])*)\\\"").find(raw)?.groupValues?.get(1)
-        if (content != null) return content.replace("\\\\n", "\\n").replace("\\\\\"", "\\\"").trim()
-        return raw.trim().removePrefix("{").removeSuffix("}").trim().ifBlank { "I couldn't find a readable response." }
+        if (!content.isNullOrBlank()) return clean(content)
+        val typedText = Regex("\\\"text\\\"\\s*:\\s*\\\"((?:\\\\.|[^\\\"])*)\\\"").findAll(raw).map { clean(it.groupValues[1]) }.filter { it.isNotBlank() }.toList()
+        if (typedText.isNotEmpty()) return typedText.joinToString("\\n\\n")
+        val fallback = raw.trim()
+        if (fallback.startsWith("{") || fallback.startsWith("[")) return "I received a response, but it did not include readable text."
+        return fallback.ifBlank { "I couldn't find a readable response." }
     }
 }
