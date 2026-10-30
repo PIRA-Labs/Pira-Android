@@ -47,7 +47,6 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.mySafety).setOnClickListener { showPanel(R.id.safetyPanel) }
         findViewById<Button>(R.id.myVoice).setOnClickListener { status.text = "My voice is coming soon — nothing is enabled yet" }
         findViewById<Button>(R.id.askMode).setOnClickListener { showBrainMode(R.id.askContent) }
-        findViewById<Button>(R.id.searchMode).setOnClickListener { showBrainMode(R.id.searchContent) }
         findViewById<Button>(R.id.connections).setOnClickListener { showConnections() }
         findViewById<Button>(R.id.closeConnections).setOnClickListener { closeConnections() }
         findViewById<Button>(R.id.useSetup).setOnClickListener { activateSetup() }
@@ -76,6 +75,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.voiceNote).setOnClickListener { startVoiceNote() }
         findViewById<Button>(R.id.saveTavily).setOnClickListener { saveTavilyKey() }
         findViewById<Button>(R.id.searchWeb).setOnClickListener { runTavilySearch() }
+        findViewById<Button>(R.id.investigate).setOnClickListener { runContextualResearch() }
         findViewById<Button>(R.id.discoverModels).setOnClickListener { discoverModels() }
         findViewById<Button>(R.id.look).setOnClickListener { requestCameraAction() }
         findViewById<Button>(R.id.denyTest).setOnClickListener {
@@ -100,20 +100,24 @@ class MainActivity : AppCompatActivity() {
         status.text = "Searching trusted web sources…"
         Thread { try { val results = tavily.search(proposal, grant); runOnUiThread { status.text = if (results.isEmpty()) "No sources returned" else results.joinToString("\n\n") { "${it.title}\n${it.url}\n${it.snippet}" }; logger.record("Tavily search completed (${results.size} sources)"); audit.text = logger.last() } } catch (error: Exception) { runOnUiThread { status.text = "Search failed: ${error.message ?: error.javaClass.simpleName}"; logger.record("Tavily search failed"); audit.text = logger.last() } } }.start()
     }
+    private fun runContextualResearch() {
+        val query = promptInput.text.toString().trim()
+        if (query.isBlank()) { status.text = "Write a message first, then ask PIRA to investigate it"; return }
+        searchInput.setText(query)
+        runTavilySearch()
+    }
     private fun showPanel(panelId: Int) {
         listOf(R.id.brainPanel, R.id.eyesPanel, R.id.safetyPanel).forEach { findViewById<View>(it).visibility = if (it == panelId) View.VISIBLE else View.GONE }
     }
     private fun showBrainMode(modeId: Int) {
         findViewById<Button>(R.id.askMode).visibility = View.VISIBLE
-        findViewById<Button>(R.id.searchMode).visibility = View.VISIBLE
-        listOf(R.id.askContent, R.id.searchContent, R.id.brainConfig).forEach { findViewById<View>(it).visibility = if (it == modeId) View.VISIBLE else View.GONE }
-        status.text = when (modeId) { R.id.searchContent -> "Search is user-triggered and source-backed"; R.id.brainConfig -> "Connections"; else -> "Ask PIRA anything" }
-        findViewById<TextView>(R.id.brainGreeting).text = when (modeId) { R.id.brainConfig -> "Connect your tools"; R.id.searchContent -> "What should we look up?"; else -> "What are we curious about?" }
+        listOf(R.id.askContent, R.id.brainConfig).forEach { findViewById<View>(it).visibility = if (it == modeId) View.VISIBLE else View.GONE }
+        status.text = if (modeId == R.id.brainConfig) "Connections" else "Ask PIRA anything"
+        findViewById<TextView>(R.id.brainGreeting).text = if (modeId == R.id.brainConfig) "Connect your tools" else "What are we curious about?"
     }
     private fun showConnections() {
         showPanel(R.id.brainPanel)
         findViewById<Button>(R.id.askMode).visibility = View.GONE
-        findViewById<Button>(R.id.searchMode).visibility = View.GONE
         findViewById<View>(R.id.askContent).visibility = View.GONE
         findViewById<View>(R.id.searchContent).visibility = View.GONE
         findViewById<View>(R.id.brainConfig).visibility = View.VISIBLE
