@@ -1,5 +1,11 @@
 # PIRA Android
 
+## Download Android APK
+
+**[Download PIRA Android v0.1.0 (experimental pre-release)](https://github.com/PIRA-Labs/Pira-Android/releases/download/v0.1.0/PIRA-Android-v0.1.0.apk)** · [Release page](https://github.com/PIRA-Labs/Pira-Android/releases/tag/v0.1.0)
+
+This is an experimental debug build for the hackathon demonstration. Install only on a device you control.
+
 PIRA (Physical Intelligence Runtime for Agents) is a security-first Android companion that lets a user connect an AI brain to physical capabilities. The app proposes actions through Nebius Token Factory and executes only user-authorized, scoped operations.
 
 ## Architecture and security
@@ -18,6 +24,14 @@ export JAVA_HOME=/opt/homebrew/opt/openjdk@17
 ```
 
 The debug APK is written to `app/build/outputs/apk/debug/app-debug.apk`.
+
+### Install and configure
+
+Download the APK above, allow your Android browser/files app to install unknown apps, and open it. For a USB-connected device: `adb install -r PIRA-Android-v0.1.0.apk`. Tested on HONOR VNE-LX3 with Android 14 (API 34); Android 8/API 26 or newer is required.
+
+PIRA requests camera permission only after the user taps **LOOK AT SOMETHING**. Internet access is used for explicitly initiated Nebius and Tavily requests; no microphone, contacts, location, SMS, or background-surveillance permission is required.
+
+Open **My Brain → Connections**, paste a Nebius Token Factory API key, tap **CONNECT MY BRAIN**, discover models, choose one, and activate the setup. Configure Tavily separately from **SEARCH WEB**. Keys are encrypted with Android Keystore and must be entered directly on the device; never place them in GitHub, logs, screenshots, or source code.
 
 ## Nebius / NVIDIA Nemotron
 
