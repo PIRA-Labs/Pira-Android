@@ -45,3 +45,10 @@
 - Added the supplied transparent Pirophone PNG as a small lower-corner brand detail.
 - The original GLB remains untouched and reserved for a future renderer-backed treatment.
 - APK recompilation passed; final physical reinstall was blocked when ADB authorization changed back to `unauthorized`.
+
+## Mission 5 — Tavily physical-to-web bridge
+
+- Added `TavilyClient` as a separate provider using `POST https://api.tavily.com/search`, `search_depth=basic`, and `max_results=5`.
+- Added an independent Keystore alias and preference namespace for the Tavily key; the Nebius credential path is unchanged.
+- Added typed `WebSearchProposal`/`WebSearchAuthorization`, exact parameter matching, expiry/replay checks, fixed endpoint, result limit, and emergency-stop enforcement.
+- Added minimal on-device onboarding/search controls. No live Tavily result or bonus-award compliance is claimed until a real response is received.

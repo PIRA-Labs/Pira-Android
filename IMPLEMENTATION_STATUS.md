@@ -12,6 +12,7 @@ This is a new isolated Android workspace. The original `taak-companion` reposito
 - Native product UI: brand-aligned XML/AppCompat redesign verified by physical screenshot and crash-filtered logcat; live Nebius status remains honest until authenticated discovery succeeds.
 - Precision Play: premium graphite instrument-panel treatment applied while preserving simple four-action home; mascot GLB intentionally deferred pending lightweight asset rendering.
 - Physical refinement verification: `/tmp/pira-44.png` captured from HONOR VNE-LX3 after reinstall/launch; legacy package remains installed.
+- Tavily: separate Keystore alias, fixed HTTPS `/search` client, basic depth/max 5, typed scoped proposal/authorization, emergency-stop gate, and result rendering implemented; live API response pending physical authorization and user-provided key.
 
 ### Inherited research
 

@@ -21,13 +21,17 @@ class MainActivity : AppCompatActivity() {
     private lateinit var keyInput: EditText
     private lateinit var modelInput: EditText
     private lateinit var promptInput: EditText
+    private lateinit var tavilyKeyInput: EditText
+    private lateinit var searchInput: EditText
     private val policy by lazy { PolicyEngine { getSharedPreferences("pira_security", MODE_PRIVATE).getBoolean("emergency_stop", false) } }
     private val logger by lazy { AuditLogger(this) }
     private val nebius by lazy { NebiusClient(this) }
+    private val tavily by lazy { TavilyClient(this) }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState); setContentView(R.layout.activity_main)
         status = findViewById(R.id.status); audit = findViewById(R.id.audit); keyInput = findViewById(R.id.nebiusKey)
         modelInput = findViewById(R.id.model); promptInput = findViewById(R.id.prompt)
+        tavilyKeyInput = findViewById(R.id.tavilyKey); searchInput = findViewById(R.id.searchQuery)
         findViewById<Button>(R.id.myBrain).setOnClickListener { showPanel(R.id.brainPanel) }
         findViewById<Button>(R.id.myEyes).setOnClickListener { showPanel(R.id.eyesPanel) }
         findViewById<Button>(R.id.mySafety).setOnClickListener { showPanel(R.id.safetyPanel) }
@@ -44,6 +48,8 @@ class MainActivity : AppCompatActivity() {
             status.text = "Credential saved — discover models to verify connection"; findViewById<TextView>(R.id.connectionState).text = "●  SAVED"; audit.text = logger.last()
         }
         findViewById<Button>(R.id.testNebius).setOnClickListener { runNebiusTest() }
+        findViewById<Button>(R.id.saveTavily).setOnClickListener { saveTavilyKey() }
+        findViewById<Button>(R.id.searchWeb).setOnClickListener { runTavilySearch() }
         findViewById<Button>(R.id.discoverModels).setOnClickListener { discoverModels() }
         findViewById<Button>(R.id.look).setOnClickListener { requestCameraAction() }
         findViewById<Button>(R.id.denyTest).setOnClickListener {
@@ -54,6 +60,19 @@ class MainActivity : AppCompatActivity() {
             getSharedPreferences("pira_security", MODE_PRIVATE).edit().putBoolean("emergency_stop", true).apply()
             logger.record("Emergency stop enabled"); status.text = "EMERGENCY STOP ACTIVE — execution blocked"; audit.text = logger.last()
         }
+    }
+    private fun saveTavilyKey() {
+        if (tavilyKeyInput.text.isNullOrBlank()) { status.text = "Enter a Tavily key to continue"; return }
+        tavily.saveKey(tavilyKeyInput.text.toString()); tavilyKeyInput.text?.clear(); logger.record("Tavily credential provisioned (value never logged)"); status.text = "Web search is ready"; audit.text = logger.last()
+    }
+    private fun runTavilySearch() {
+        if (getSharedPreferences("pira_security", MODE_PRIVATE).getBoolean("emergency_stop", false)) { status.text = "DENIED: emergency stop active"; return }
+        if (!tavily.hasKey()) { status.text = "Connect Tavily first"; return }
+        val query = searchInput.text.toString().trim(); if (query.isBlank()) { status.text = "Enter what you want to find"; return }
+        val proposal = WebSearchProposal(query, "user-approved related information", "search-${System.currentTimeMillis()}")
+        val grant = WebSearchAuthorization(proposal.query, proposal.purpose, proposal.requestId, System.currentTimeMillis() + 60_000)
+        status.text = "Searching trusted web sources…"
+        Thread { try { val results = tavily.search(proposal, grant); runOnUiThread { status.text = if (results.isEmpty()) "No sources returned" else results.joinToString("\n\n") { "${it.title}\n${it.url}\n${it.snippet}" }; logger.record("Tavily search completed (${results.size} sources)"); audit.text = logger.last() } } catch (error: Exception) { runOnUiThread { status.text = "Search failed: ${error.message ?: error.javaClass.simpleName}"; logger.record("Tavily search failed"); audit.text = logger.last() } } }.start()
     }
     private fun showPanel(panelId: Int) {
         listOf(R.id.brainPanel, R.id.eyesPanel, R.id.safetyPanel).forEach { findViewById<View>(it).visibility = if (it == panelId) View.VISIBLE else View.GONE }
