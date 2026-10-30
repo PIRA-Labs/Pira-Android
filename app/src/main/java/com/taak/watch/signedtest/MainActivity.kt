@@ -26,6 +26,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var promptInput: EditText
     private lateinit var tavilyKeyInput: EditText
     private lateinit var searchInput: EditText
+    private lateinit var chatTranscript: TextView
+    private lateinit var visionTranscript: TextView
     private var selectedModelId: String? = null
     private val policy by lazy { PolicyEngine { getSharedPreferences("pira_security", MODE_PRIVATE).getBoolean("emergency_stop", false) } }
     private val logger by lazy { AuditLogger(this) }
@@ -37,6 +39,7 @@ class MainActivity : AppCompatActivity() {
         modelInput = findViewById(R.id.model); promptInput = findViewById(R.id.askPrompt)
         getSharedPreferences("pira_config", MODE_PRIVATE).getString("model", null)?.let { selectedModelId = it; modelInput.setText(humanModelName(it)) }
         tavilyKeyInput = findViewById(R.id.tavilyKey); searchInput = findViewById(R.id.searchQuery)
+        chatTranscript = findViewById(R.id.chatTranscript); visionTranscript = findViewById(R.id.visionTranscript)
         findViewById<Button>(R.id.myBrain).setOnClickListener { showPanel(R.id.brainPanel); showBrainMode(R.id.askContent) }
         findViewById<Button>(R.id.myEyes).setOnClickListener { showPanel(R.id.eyesPanel) }
         findViewById<Button>(R.id.mySafety).setOnClickListener { showPanel(R.id.safetyPanel) }
@@ -171,7 +174,7 @@ class MainActivity : AppCompatActivity() {
         if (model.isEmpty() || prompt.isEmpty()) { status.text = "Enter a model ID and prompt"; return }
         status.text = "Calling Nebius…"
         Thread {
-            try { val response = nebius.chat(model, prompt); runOnUiThread { status.text = "Nebius response:\n${response.take(1200)}"; logger.record("Nebius text request completed"); audit.text = logger.last() } }
+            try { val response = nebius.chat(model, prompt); runOnUiThread { chatTranscript.visibility = View.VISIBLE; chatTranscript.text = "You\n$prompt\n\nPIRA\n${humanizeModelResponse(response)}"; status.text = "PIRA replied"; logger.record("Nebius text request completed"); audit.text = logger.last() } }
             catch (error: Exception) { runOnUiThread { status.text = "Nebius error: ${error.message ?: error.javaClass.simpleName}"; logger.record("Nebius request denied/failed"); audit.text = logger.last() } }
         }.start()
     }
@@ -185,5 +188,22 @@ class MainActivity : AppCompatActivity() {
         }
         logger.record("Authorized camera capture started; image is not retained"); audit.text = logger.last()
         startActivityForResult(Intent(MediaStore.ACTION_IMAGE_CAPTURE), cameraRequest)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == cameraRequest && resultCode == RESULT_OK) {
+            visionTranscript.visibility = View.VISIBLE
+            visionTranscript.text = "PIRA\nPhoto captured safely. Vision analysis will appear here when a vision model is selected."
+            status.text = "Photo captured — ready for a user-approved look"
+            logger.record("Authorized camera capture completed; image is not retained")
+            audit.text = logger.last()
+        }
+    }
+
+    private fun humanizeModelResponse(raw: String): String {
+        val content = Regex("\\\"content\\\"\\s*:\\s*\\\"((?:\\\\.|[^\\\"])*)\\\"").find(raw)?.groupValues?.get(1)
+        if (content != null) return content.replace("\\\\n", "\\n").replace("\\\\\"", "\\\"").trim()
+        return raw.trim().removePrefix("{").removeSuffix("}").trim().ifBlank { "I couldn't find a readable response." }
     }
 }
