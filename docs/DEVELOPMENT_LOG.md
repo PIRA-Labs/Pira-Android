@@ -67,3 +67,10 @@
 - Nebius/Tavily credentials and model selection are no longer shown in the default ask surface.
 - The ask surface now has one prompt and one primary action; search has its own query and source flow; settings contains provider setup.
 - Build and unit tests pass. Physical install remains pending the next authorized ADB session.
+
+## Product navigation refinement
+
+- Moved provider configuration out of Brain into a bottom control dock alongside Devices and Safety.
+- Brain now prioritizes asking; connection setup is reached through Connect, and device access remains separate.
+- Model choices persist after selection and are presented with human-friendly Nemotron labels.
+- Physical screenshot `/tmp/pira-dock.png` confirms the dock, persisted state, Pirophone detail, and clean home hierarchy on the HONOR device.

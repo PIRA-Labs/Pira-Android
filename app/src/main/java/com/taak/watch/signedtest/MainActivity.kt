@@ -34,6 +34,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState); setContentView(R.layout.activity_main)
         status = findViewById(R.id.status); audit = findViewById(R.id.audit); keyInput = findViewById(R.id.nebiusKey)
         modelInput = findViewById(R.id.model); promptInput = findViewById(R.id.askPrompt)
+        getSharedPreferences("pira_config", MODE_PRIVATE).getString("model", null)?.let { modelInput.setText(it) }
         tavilyKeyInput = findViewById(R.id.tavilyKey); searchInput = findViewById(R.id.searchQuery)
         findViewById<Button>(R.id.myBrain).setOnClickListener { showPanel(R.id.brainPanel) }
         findViewById<Button>(R.id.myEyes).setOnClickListener { showPanel(R.id.eyesPanel) }
@@ -41,7 +42,9 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.myVoice).setOnClickListener { status.text = "My voice is coming soon — nothing is enabled yet" }
         findViewById<Button>(R.id.askMode).setOnClickListener { showBrainMode(R.id.askContent) }
         findViewById<Button>(R.id.searchMode).setOnClickListener { showBrainMode(R.id.searchContent) }
-        findViewById<Button>(R.id.settingsMode).setOnClickListener { showBrainMode(R.id.brainConfig) }
+        findViewById<Button>(R.id.connections).setOnClickListener { showPanel(R.id.brainPanel); showBrainMode(R.id.brainConfig) }
+        findViewById<Button>(R.id.devices).setOnClickListener { showPanel(R.id.eyesPanel) }
+        findViewById<Button>(R.id.safetyDock).setOnClickListener { showPanel(R.id.safetyPanel) }
         findViewById<android.widget.CheckBox>(R.id.showKey).setOnCheckedChangeListener { _, checked ->
             keyInput.inputType = if (checked) InputType.TYPE_CLASS_TEXT else InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
             keyInput.setSelection(keyInput.text.length)
@@ -110,11 +113,16 @@ class MainActivity : AppCompatActivity() {
                 text = if (id.contains("nemotron", true)) "NVIDIA NEMOTRON\n$id" else id
                 setTextColor(Color.WHITE); gravity = Gravity.START or Gravity.CENTER_VERTICAL; minHeight = 56; isAllCaps = false
                 backgroundTintList = android.content.res.ColorStateList.valueOf(getColor(R.color.pira_indigo))
-                setOnClickListener { modelInput.setText(id); status.text = "Selected ${id.substringAfterLast('/')}"; options.visibility = View.GONE }
+                setOnClickListener { modelInput.setText(id); getSharedPreferences("pira_config", MODE_PRIVATE).edit().putString("model", id).apply(); status.text = "Brain selected: ${humanModelName(id)}"; options.visibility = View.GONE }
             }
             options.addView(button, LinearLayout.LayoutParams(-1, 64).apply { topMargin = 6 })
         }
         options.visibility = View.VISIBLE
+    }
+    private fun humanModelName(id: String): String = when {
+        id.contains("nemotron", true) && id.contains("vl", true) -> "Nemotron Super VL"
+        id.contains("nemotron", true) -> "Nemotron"
+        else -> id.substringAfterLast('/').replace('-', ' ').replace('_', ' ')
     }
     private fun runNebiusTest() {
         if (!nebius.hasKey()) { status.text = "Connect a Nebius key first"; return }

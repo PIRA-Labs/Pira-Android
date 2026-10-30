@@ -20,7 +20,6 @@
     <Button android:id="@+id/askMode" android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1" android:backgroundTint="@color/pira_blue" android:text="ASK PIRA" android:textColor="@color/pira_night" android:textStyle="bold" />
     <Button android:id="@+id/searchMode" android:layout_width="0dp" android:layout_height="52dp" android:layout_marginStart="8dp" android:layout_weight="1" android:backgroundTint="@color/pira_indigo" android:text="SEARCH WEB" android:textColor="@color/pira_ink" />
    </LinearLayout>
-   <Button android:id="@+id/settingsMode" android:layout_width="match_parent" android:layout_height="44dp" android:layout_marginTop="4dp" android:backgroundTint="@color/pira_card" android:text="BRAIN SETTINGS" android:textColor="@color/pira_muted" android:textSize="12sp" />
    <LinearLayout android:id="@+id/brainConfig" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="Connect once. PIRA keeps the key protected." android:textColor="@color/pira_muted" android:textSize="13sp" />
    <EditText android:id="@+id/nebiusKey" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="12dp" android:background="@drawable/pira_input" android:hint="Paste your Nebius key" android:inputType="textPassword" android:textColor="@color/pira_ink" android:textColorHint="@color/pira_muted" />
@@ -51,6 +50,11 @@
    <TextView android:id="@+id/audit" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="No activity yet" android:textColor="@color/pira_muted" android:textSize="13sp" />
   </LinearLayout>
   <TextView android:id="@+id/auditFallback" android:layout_width="1dp" android:layout_height="1dp" android:visibility="gone" />
+  <LinearLayout android:id="@+id/controlDock" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="18dp" android:orientation="horizontal">
+   <Button android:id="@+id/connections" android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1" android:backgroundTint="@color/pira_indigo" android:text="CONNECT" android:textColor="@color/pira_ink" android:textSize="11sp" />
+   <Button android:id="@+id/devices" android:layout_width="0dp" android:layout_height="52dp" android:layout_marginStart="6dp" android:layout_weight="1" android:backgroundTint="@color/pira_indigo" android:text="DEVICES" android:textColor="@color/pira_ink" android:textSize="11sp" />
+   <Button android:id="@+id/safetyDock" android:layout_width="0dp" android:layout_height="52dp" android:layout_marginStart="6dp" android:layout_weight="1" android:backgroundTint="@color/pira_indigo" android:text="SAFETY" android:textColor="@color/pira_ink" android:textSize="11sp" />
+  </LinearLayout>
   <ImageView android:id="@+id/pirophoneMascot" android:layout_width="112dp" android:layout_height="90dp" android:layout_gravity="end" android:layout_marginTop="14dp" android:contentDescription="Pirophone waving" android:scaleType="fitCenter" android:src="@drawable/pirophone" android:alpha="0.96" />
  </LinearLayout>
 </ScrollView>
