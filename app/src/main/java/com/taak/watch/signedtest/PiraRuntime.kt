@@ -40,6 +40,7 @@ class AuditLogger(context: Context) {
 }
 
 class SecureKeyStore(private val alias: String = "pira-nebius-key") {
+    fun clear() { KeyStore.getInstance("AndroidKeyStore").apply { load(null) }.deleteEntry(alias) }
     private fun key(): SecretKey {
         val store = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
         if (store.containsAlias(alias)) return (store.getEntry(alias, null) as KeyStore.SecretKeyEntry).secretKey
@@ -65,6 +66,7 @@ class NebiusClient(private val context: Context) {
     private val prefs = context.getSharedPreferences("pira_config", Context.MODE_PRIVATE)
     private val keyStore = SecureKeyStore("pira-nebius-key")
     fun saveKey(value: String) { prefs.edit().putString("key", keyStore.encrypt(value)).apply() }
+    fun clear() { prefs.edit().clear().apply(); keyStore.clear() }
     fun hasKey() = !prefs.getString("key", null).isNullOrBlank()
     private fun key() = keyStore.decrypt(prefs.getString("key", "") ?: "")
     fun models(): String = request("GET", "/models", null)
@@ -90,6 +92,7 @@ class TavilyClient(private val context: Context) {
     private val prefs = context.getSharedPreferences("pira_tavily_config", Context.MODE_PRIVATE)
     private val keyStore = SecureKeyStore("pira-tavily-key")
     fun saveKey(value: String) { prefs.edit().putString("key", keyStore.encrypt(value)).apply() }
+    fun clear() { prefs.edit().clear().apply(); keyStore.clear() }
     fun hasKey() = !prefs.getString("key", null).isNullOrBlank()
     private fun key() = keyStore.decrypt(prefs.getString("key", "") ?: "")
     fun search(proposal: WebSearchProposal, authorization: WebSearchAuthorization): List<WebSearchResult> {

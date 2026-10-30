@@ -44,6 +44,9 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.askMode).setOnClickListener { showBrainMode(R.id.askContent) }
         findViewById<Button>(R.id.searchMode).setOnClickListener { showBrainMode(R.id.searchContent) }
         findViewById<Button>(R.id.connections).setOnClickListener { showConnections() }
+        findViewById<Button>(R.id.closeConnections).setOnClickListener { closeConnections() }
+        findViewById<Button>(R.id.useSetup).setOnClickListener { activateSetup() }
+        findViewById<Button>(R.id.clearSetup).setOnClickListener { clearSetup() }
         findViewById<Button>(R.id.devices).setOnClickListener { showPanel(R.id.eyesPanel) }
         findViewById<android.widget.CheckBox>(R.id.showKey).setOnCheckedChangeListener { _, checked ->
             keyInput.inputType = if (checked) InputType.TYPE_CLASS_TEXT else InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
@@ -108,8 +111,29 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.askContent).visibility = View.GONE
         findViewById<View>(R.id.searchContent).visibility = View.GONE
         findViewById<View>(R.id.brainConfig).visibility = View.VISIBLE
+        findViewById<View>(R.id.useSetup).visibility = View.VISIBLE
+        findViewById<View>(R.id.clearSetup).visibility = View.VISIBLE
         findViewById<TextView>(R.id.brainGreeting).text = "Connect your tools"
         status.text = "Connections"
+        findViewById<TextView>(R.id.currentSetup).text = if (nebius.hasKey()) "Current setup: Nebius key saved" else "No active setup"
+    }
+    private fun closeConnections() {
+        findViewById<View>(R.id.brainPanel).visibility = View.GONE
+        status.text = if (nebius.hasKey()) "Your brain is ready" else "Ready when you are"
+    }
+    private fun activateSetup() {
+        if (!nebius.hasKey()) { status.text = "Connect Nebius before activating setup"; return }
+        getSharedPreferences("pira_security", MODE_PRIVATE).edit().putBoolean("connection_active", true).apply()
+        findViewById<TextView>(R.id.currentSetup).text = "Current setup: active"
+        status.text = "Setup active — PIRA is ready"
+        logger.record("Connection setup activated")
+        audit.text = logger.last()
+    }
+    private fun clearSetup() {
+        nebius.clear(); tavily.clear(); getSharedPreferences("pira_security", MODE_PRIVATE).edit().putBoolean("connection_active", false).apply()
+        findViewById<TextView>(R.id.nebiusConnected).visibility = View.GONE
+        keyInput.visibility = View.VISIBLE; findViewById<View>(R.id.showKey).visibility = View.VISIBLE; findViewById<Button>(R.id.saveKey).visibility = View.VISIBLE
+        findViewById<TextView>(R.id.currentSetup).text = "No active setup"; status.text = "Configuration cleared"; logger.record("Connection configuration cleared"); audit.text = logger.last()
     }
     private fun discoverModels() {
         if (!nebius.hasKey()) { status.text = "Connect a Nebius key first"; return }

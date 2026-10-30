@@ -77,3 +77,4 @@
 - Corrected dock routing after physical review: Connect opens only provider configuration, Devices opens physical capabilities, and Safety is no longer duplicated in the bottom dock.
 - Final routing correction: Connect now hides Brain's Ask/Search tabs entirely and presents only provider setup; physical screenshot `/tmp/pira-connections-only.png` verifies the surface.
 - Connection status refinement: saved Nebius credentials now render as `NEBIUS CONNECTED`, with key entry controls hidden; model selection shows human-readable labels and keeps the technical ID internal for inference.
+- Connection lifecycle refinement: added explicit `USE THIS SETUP`, `CLEAR CONFIGURATION`, and close controls; active setup state is persisted and the Connect surface now has a complete open/activate/close/clear flow.
