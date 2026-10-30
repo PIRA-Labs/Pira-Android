@@ -20,7 +20,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.taak.watch.signedtest"
+        applicationId = "ai.pira.android"
         minSdk = 26
         targetSdk = 34
         versionCode = 1

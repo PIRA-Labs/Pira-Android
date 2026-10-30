@@ -8,6 +8,7 @@ This is a new isolated Android workspace. The original `taak-companion` reposito
 - Policy unit tests pass, including expiry, replay, parameter binding, scope mismatch, and emergency-stop denial.
 - Nebius client uses the verified OpenAI-compatible base URL `https://api.tokenfactory.nebius.com/v1/`, Bearer authentication, `GET /models`, and `POST /chat/completions`.
 - Mission 4 live check: unauthenticated `GET /v1/models` returned HTTP 401 (`token is not present`); no NVIDIA model ID has been confirmed for this account.
+- Physical install: `ai.pira.android` installed and launched on authorized HONOR VNE-LX3 / Android 14 / API 34; legacy package preserved.
 
 ### Inherited research
 

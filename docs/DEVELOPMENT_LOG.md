@@ -18,3 +18,10 @@
 
 - Objective: make the repository auditable.
 - Implemented: documentation structure, ADRs, experiment registry, threat model, changelog, contribution rules, secret/build hygiene, and local commits.
+
+## Mission 4.2 — Physical first contact and package identity
+
+- Changed only PIRA's `applicationId` to `ai.pira.android` and app label to `PIRA`; retained the Kotlin namespace to avoid unnecessary refactoring.
+- Built with JDK 17, ran unit tests, installed the APK on authorized HONOR `VNE-LX3` hardware, and launched the activity successfully.
+- Verified the legacy `com.taak.watch.signedtest` package remained installed and was not uninstalled or data-cleared.
+- Nebius/NVIDIA inference remains pending until the user enters a key directly in the PIRA UI; no key was requested through shell or chat.

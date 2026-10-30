@@ -13,3 +13,4 @@
 | E-009 | Policy denies adversarial proposals | Passed | `PolicyEngineTest`: missing, expired, reused, mismatched, modified, and emergency-stop cases. |
 | E-010 | Unauthenticated Nebius model discovery | Blocked | 2026-10-30: `GET https://api.tokenfactory.nebius.com/v1/models` returned HTTP 401 `token is not present`; no key was available in the environment. |
 | E-011 | NVIDIA model inference through Nebius | Blocked | Requires E-010 with a real key; do not claim hackathon compliance until a live NVIDIA response is captured. |
+| E-012 | Install PIRA on physical HONOR VNE-LX3 | Passed | 2026-10-30: ADB authorized serial `AKJDNU2919400629`, Android 14/API 34, arm64-v8a; installed `ai.pira.android` without uninstalling legacy `com.taak.watch.signedtest`; explicit activity launch returned `Status: ok`; no crash in filtered logcat. |
