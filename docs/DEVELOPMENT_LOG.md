@@ -39,3 +39,9 @@
 - Preserved the four-action information architecture and emergency stop.
 - Kept the Pirophone GLB as a future enhancement because the web repository does not provide an independent transparent PNG and Android has no 3D renderer dependency.
 - Build and unit tests pass. After renewed USB authorization, the refined APK was installed and its home screen was captured on the HONOR VNE-LX3; the resulting composition shows restrained graphite surfaces, precise accent outlines, four primary actions, and a distinct emergency stop.
+
+## Pirophone detail
+
+- Added the supplied transparent Pirophone PNG as a small lower-corner brand detail.
+- The original GLB remains untouched and reserved for a future renderer-backed treatment.
+- APK recompilation passed; final physical reinstall was blocked when ADB authorization changed back to `unauthorized`.
