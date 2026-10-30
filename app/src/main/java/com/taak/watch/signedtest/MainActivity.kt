@@ -262,9 +262,11 @@ class MainActivity : AppCompatActivity() {
                     return text
                 }
                 is JSONObject -> {
-                    val direct = listOf("content", "text", "output", "answer").firstNotNullOfOrNull { key -> if (value.has(key)) read(value.get(key)) else null }
+                    val direct = listOf("content", "text", "output", "output_text", "generated_text", "answer", "response", "message").firstNotNullOfOrNull { key -> if (value.has(key)) read(value.get(key)) else null }
                     if (!direct.isNullOrBlank()) return direct
-                    listOf("choices", "message", "delta", "data", "response").forEach { key -> if (value.has(key)) { val nested = read(value.get(key)); if (nested.isNotBlank()) return nested } }
+                    listOf("choices", "message", "delta", "data", "response", "results").forEach { key -> if (value.has(key)) { val nested = read(value.get(key)); if (nested.isNotBlank()) return nested } }
+                    val ignored = setOf("id", "model", "object", "created", "usage", "finish_reason", "index", "role", "type")
+                    value.keys().asSequence().filter { it !in ignored }.map { key -> read(value.get(key)) }.filter { it.length > 20 }.maxByOrNull { it.length }?.let { return it }
                 }
                 is JSONArray -> {
                     val parts = (0 until value.length()).map { read(value.get(it)) }.filter { it.isNotBlank() }
