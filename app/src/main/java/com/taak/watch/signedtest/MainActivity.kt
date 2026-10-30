@@ -10,6 +10,9 @@ import android.widget.EditText
 import android.widget.TextView
 import android.text.InputType
 import android.view.View
+import android.graphics.Color
+import android.view.Gravity
+import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -41,6 +44,10 @@ class MainActivity : AppCompatActivity() {
             keyInput.setSelection(keyInput.text.length)
         }
         audit.text = logger.last()
+        if (nebius.hasKey()) {
+            findViewById<TextView>(R.id.connectionState).text = "●  KEY SAVED"
+            status.text = "Your brain is ready — discover models"
+        }
         findViewById<Button>(R.id.saveKey).setOnClickListener {
             if (keyInput.text.isNullOrBlank()) { status.text = "Enter a key to continue"; return@setOnClickListener }
             nebius.saveKey(keyInput.text.toString()); keyInput.text?.clear()
@@ -81,9 +88,26 @@ class MainActivity : AppCompatActivity() {
         if (!nebius.hasKey()) { status.text = "Connect a Nebius key first"; return }
         status.text = "Discovering models…"
         Thread {
-            try { val response = nebius.models(); runOnUiThread { status.text = "Available models:\n${response.take(1800)}"; findViewById<TextView>(R.id.connectionState).text = "●  CONNECTED"; logger.record("Nebius model discovery completed"); audit.text = logger.last() } }
+            try { val response = nebius.models(); runOnUiThread { showModelOptions(response); findViewById<TextView>(R.id.connectionState).text = "●  MODELS READY"; status.text = "Choose the brain you want to use"; logger.record("Nebius model discovery completed"); audit.text = logger.last() } }
             catch (error: Exception) { runOnUiThread { status.text = "Model discovery error: ${error.message ?: error.javaClass.simpleName}"; logger.record("Nebius model discovery failed"); audit.text = logger.last() } }
         }.start()
+    }
+    private fun showModelOptions(response: String) {
+        val options = findViewById<LinearLayout>(R.id.modelOptions)
+        options.removeAllViews()
+        val ids = Regex("\\\"id\\\"\\s*:\\s*\\\"([^\\\"]+)\\\"").findAll(response).map { it.groupValues[1] }.distinct().toList()
+        val prioritized = ids.sortedWith(compareByDescending<String> { it.contains("nemotron", true) }.thenByDescending { it.startsWith("nvidia/", true) }.thenBy { it })
+        if (prioritized.isEmpty()) { status.text = "No selectable models were returned"; return }
+        prioritized.take(20).forEach { id ->
+            val button = Button(this).apply {
+                text = if (id.contains("nemotron", true)) "NVIDIA NEMOTRON\n$id" else id
+                setTextColor(Color.WHITE); gravity = Gravity.START or Gravity.CENTER_VERTICAL; minHeight = 56; isAllCaps = false
+                backgroundTintList = android.content.res.ColorStateList.valueOf(getColor(R.color.pira_indigo))
+                setOnClickListener { modelInput.setText(id); status.text = "Selected ${id.substringAfterLast('/')}"; options.visibility = View.GONE }
+            }
+            options.addView(button, LinearLayout.LayoutParams(-1, 64).apply { topMargin = 6 })
+        }
+        options.visibility = View.VISIBLE
     }
     private fun runNebiusTest() {
         if (!nebius.hasKey()) { status.text = "Connect a Nebius key first"; return }

@@ -53,3 +53,9 @@
 - Added typed `WebSearchProposal`/`WebSearchAuthorization`, exact parameter matching, expiry/replay checks, fixed endpoint, result limit, and emergency-stop enforcement.
 - Added minimal on-device onboarding/search controls. No live Tavily result or bonus-award compliance is claimed until a real response is received.
 - Physical smoke test: Tavily APK installed/launched on HONOR VNE-LX3; screenshot captured at `/tmp/pira-tavily.png`; no fatal logcat entries. Legacy package remained installed.
+
+## Model onboarding correction
+
+- Persisted Nebius credential state is now restored on app launch (`KEY SAVED`) instead of reverting to the empty initial presentation.
+- Replaced raw model JSON display with a real clickable model picker. Returned IDs are parsed from the authenticated catalog, with NVIDIA/Nemotron models prioritized; selecting a row fills the model field and collapses the list.
+- Build and unit tests pass. Physical reinstall is pending renewed ADB authorization.
