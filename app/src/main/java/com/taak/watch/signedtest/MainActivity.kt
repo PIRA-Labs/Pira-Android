@@ -44,7 +44,6 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.searchMode).setOnClickListener { showBrainMode(R.id.searchContent) }
         findViewById<Button>(R.id.connections).setOnClickListener { showPanel(R.id.brainPanel); showBrainMode(R.id.brainConfig) }
         findViewById<Button>(R.id.devices).setOnClickListener { showPanel(R.id.eyesPanel) }
-        findViewById<Button>(R.id.safetyDock).setOnClickListener { showPanel(R.id.safetyPanel) }
         findViewById<android.widget.CheckBox>(R.id.showKey).setOnCheckedChangeListener { _, checked ->
             keyInput.inputType = if (checked) InputType.TYPE_CLASS_TEXT else InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
             keyInput.setSelection(keyInput.text.length)
@@ -92,7 +91,8 @@ class MainActivity : AppCompatActivity() {
     }
     private fun showBrainMode(modeId: Int) {
         listOf(R.id.askContent, R.id.searchContent, R.id.brainConfig).forEach { findViewById<View>(it).visibility = if (it == modeId) View.VISIBLE else View.GONE }
-        status.text = when (modeId) { R.id.searchContent -> "Search is user-triggered and source-backed"; R.id.brainConfig -> "Brain settings"; else -> "Ask PIRA anything" }
+        status.text = when (modeId) { R.id.searchContent -> "Search is user-triggered and source-backed"; R.id.brainConfig -> "Connections"; else -> "Ask PIRA anything" }
+        findViewById<TextView>(R.id.brainGreeting).text = when (modeId) { R.id.brainConfig -> "Connect your tools"; R.id.searchContent -> "What should we look up?"; else -> "What are we curious about?" }
     }
     private fun discoverModels() {
         if (!nebius.hasKey()) { status.text = "Connect a Nebius key first"; return }
