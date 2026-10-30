@@ -36,13 +36,13 @@ class MainActivity : AppCompatActivity() {
         modelInput = findViewById(R.id.model); promptInput = findViewById(R.id.askPrompt)
         getSharedPreferences("pira_config", MODE_PRIVATE).getString("model", null)?.let { modelInput.setText(it) }
         tavilyKeyInput = findViewById(R.id.tavilyKey); searchInput = findViewById(R.id.searchQuery)
-        findViewById<Button>(R.id.myBrain).setOnClickListener { showPanel(R.id.brainPanel) }
+        findViewById<Button>(R.id.myBrain).setOnClickListener { showPanel(R.id.brainPanel); showBrainMode(R.id.askContent) }
         findViewById<Button>(R.id.myEyes).setOnClickListener { showPanel(R.id.eyesPanel) }
         findViewById<Button>(R.id.mySafety).setOnClickListener { showPanel(R.id.safetyPanel) }
         findViewById<Button>(R.id.myVoice).setOnClickListener { status.text = "My voice is coming soon — nothing is enabled yet" }
         findViewById<Button>(R.id.askMode).setOnClickListener { showBrainMode(R.id.askContent) }
         findViewById<Button>(R.id.searchMode).setOnClickListener { showBrainMode(R.id.searchContent) }
-        findViewById<Button>(R.id.connections).setOnClickListener { showPanel(R.id.brainPanel); showBrainMode(R.id.brainConfig) }
+        findViewById<Button>(R.id.connections).setOnClickListener { showConnections() }
         findViewById<Button>(R.id.devices).setOnClickListener { showPanel(R.id.eyesPanel) }
         findViewById<android.widget.CheckBox>(R.id.showKey).setOnCheckedChangeListener { _, checked ->
             keyInput.inputType = if (checked) InputType.TYPE_CLASS_TEXT else InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
@@ -90,9 +90,21 @@ class MainActivity : AppCompatActivity() {
         listOf(R.id.brainPanel, R.id.eyesPanel, R.id.safetyPanel).forEach { findViewById<View>(it).visibility = if (it == panelId) View.VISIBLE else View.GONE }
     }
     private fun showBrainMode(modeId: Int) {
+        findViewById<Button>(R.id.askMode).visibility = View.VISIBLE
+        findViewById<Button>(R.id.searchMode).visibility = View.VISIBLE
         listOf(R.id.askContent, R.id.searchContent, R.id.brainConfig).forEach { findViewById<View>(it).visibility = if (it == modeId) View.VISIBLE else View.GONE }
         status.text = when (modeId) { R.id.searchContent -> "Search is user-triggered and source-backed"; R.id.brainConfig -> "Connections"; else -> "Ask PIRA anything" }
         findViewById<TextView>(R.id.brainGreeting).text = when (modeId) { R.id.brainConfig -> "Connect your tools"; R.id.searchContent -> "What should we look up?"; else -> "What are we curious about?" }
+    }
+    private fun showConnections() {
+        showPanel(R.id.brainPanel)
+        findViewById<Button>(R.id.askMode).visibility = View.GONE
+        findViewById<Button>(R.id.searchMode).visibility = View.GONE
+        findViewById<View>(R.id.askContent).visibility = View.GONE
+        findViewById<View>(R.id.searchContent).visibility = View.GONE
+        findViewById<View>(R.id.brainConfig).visibility = View.VISIBLE
+        findViewById<TextView>(R.id.brainGreeting).text = "Connect your tools"
+        status.text = "Connections"
     }
     private fun discoverModels() {
         if (!nebius.hasKey()) { status.text = "Connect a Nebius key first"; return }

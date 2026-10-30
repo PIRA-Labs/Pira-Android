@@ -75,3 +75,4 @@
 - Model choices persist after selection and are presented with human-friendly Nemotron labels.
 - Physical screenshot `/tmp/pira-dock.png` confirms the dock, persisted state, Pirophone detail, and clean home hierarchy on the HONOR device.
 - Corrected dock routing after physical review: Connect opens only provider configuration, Devices opens physical capabilities, and Safety is no longer duplicated in the bottom dock.
+- Final routing correction: Connect now hides Brain's Ask/Search tabs entirely and presents only provider setup; physical screenshot `/tmp/pira-connections-only.png` verifies the surface.
