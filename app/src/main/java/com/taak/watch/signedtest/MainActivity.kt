@@ -15,6 +15,8 @@ import android.graphics.Color
 import android.graphics.Bitmap
 import android.view.Gravity
 import android.widget.LinearLayout
+import org.json.JSONArray
+import org.json.JSONObject
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -252,6 +254,29 @@ class MainActivity : AppCompatActivity() {
 
     private fun humanizeModelResponse(raw: String): String {
         fun clean(value: String): String = value.replace("\\\\n", "\\n").replace("\\\\r", "").replace("\\\\t", " ").replace("\\\\\"", "\\\"").trim()
+        fun read(value: Any?): String {
+            when (value) {
+                is String -> {
+                    val text = clean(value)
+                    if (text.startsWith("{") || text.startsWith("[")) return try { read(JSONObject(text)) } catch (_: Exception) { text }
+                    return text
+                }
+                is JSONObject -> {
+                    val direct = listOf("content", "text", "output", "answer").firstNotNullOfOrNull { key -> if (value.has(key)) read(value.get(key)) else null }
+                    if (!direct.isNullOrBlank()) return direct
+                    value.keys().forEach { key -> val nested = read(value.get(key)); if (nested.isNotBlank()) return nested }
+                }
+                is JSONArray -> {
+                    val parts = (0 until value.length()).map { read(value.get(it)) }.filter { it.isNotBlank() }
+                    if (parts.isNotEmpty()) return parts.joinToString("\\n\\n")
+                }
+            }
+            return ""
+        }
+        try {
+            val parsed = read(JSONObject(raw))
+            if (parsed.isNotBlank()) return parsed
+        } catch (_: Exception) { /* handled by plain-text fallback */ }
         val content = Regex("\\\"content\\\"\\s*:\\s*\\\"((?:\\\\.|[^\\\"])*)\\\"").find(raw)?.groupValues?.get(1)
         if (!content.isNullOrBlank()) return clean(content)
         val typedText = Regex("\\\"text\\\"\\s*:\\s*\\\"((?:\\\\.|[^\\\"])*)\\\"").findAll(raw).map { clean(it.groupValues[1]) }.filter { it.isNotBlank() }.toList()
