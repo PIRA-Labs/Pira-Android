@@ -25,3 +25,10 @@
 - Built with JDK 17, ran unit tests, installed the APK on authorized HONOR `VNE-LX3` hardware, and launched the activity successfully.
 - Verified the legacy `com.taak.watch.signedtest` package remained installed and was not uninstalled or data-cleared.
 - Nebius/NVIDIA inference remains pending until the user enters a key directly in the PIRA UI; no key was requested through shell or chat.
+
+## Mission 4.3 — Native product design and first awakening
+
+- Reworked the existing XML/AppCompat screen into a native PIRA product surface using the web brand's indigo dusk, lilac, blue, and peach palette.
+- Added a clear intelligence onboarding hierarchy, real connection-state vocabulary, model discovery, first inference action, physical-world capability status, and always-visible emergency stop.
+- Added API-key show/hide editing control while preserving Keystore storage and existing networking/policy code.
+- Verified on the physical HONOR VNE-LX3: debug build/tests passed, APK installed, activity launched, screenshot captured, and filtered logcat showed no fatal exception.

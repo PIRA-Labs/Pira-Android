@@ -1,19 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent">
- <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="24dp">
-  <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="PIRA" android:textSize="34sp" android:textStyle="bold" />
-  <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Physical Intelligence Runtime for Agents\nYour agent proposes. You decide." android:textSize="18sp" android:layout_marginTop="8dp" />
-  <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="SECURITY\nModel access never grants hardware access. Every capability is typed, scoped, and audited." android:layout_marginTop="24dp" />
-  <EditText android:id="@+id/nebiusKey" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Nebius API key" android:inputType="textPassword" android:layout_marginTop="20dp" />
-  <Button android:id="@+id/saveKey" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="CONNECT MODEL" />
-  <EditText android:id="@+id/model" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Nebius model ID (from /v1/models)" android:layout_marginTop="12dp" />
-  <EditText android:id="@+id/prompt" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Ask the model something" />
-  <Button android:id="@+id/testNebius" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="TEST NEBIUS TEXT" />
-  <Button android:id="@+id/discoverModels" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="DISCOVER AVAILABLE MODELS" />
-  <Button android:id="@+id/look" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="LOOK AT SOMETHING" android:layout_marginTop="16dp" />
-  <Button android:id="@+id/denyTest" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="RUN SECURITY DENIAL TEST" android:layout_marginTop="8dp" />
-  <Button android:id="@+id/stop" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="EMERGENCY STOP" android:layout_marginTop="8dp" />
-  <TextView android:id="@+id/status" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Ready — no capabilities authorized" android:layout_marginTop="20dp" />
-  <TextView android:id="@+id/audit" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="No activity yet" android:layout_marginTop="12dp" />
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true">
+ <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="22dp">
+  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal">
+   <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="PIRA" android:textColor="@color/pira_ink" android:textSize="30sp" android:textStyle="bold" />
+   <TextView android:id="@+id/connectionState" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="●  OFFLINE" android:textColor="@color/pira_muted" android:textSize="12sp" android:textStyle="bold" />
+  </LinearLayout>
+  <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="3dp" android:text="Give AI access to reality.\nKeep humans in control." android:textColor="@color/pira_lilac" android:textSize="20sp" android:lineSpacingExtra="3dp" />
+
+  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="22dp" android:background="@drawable/pira_card" android:orientation="vertical">
+   <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="THE PIRA CORE" android:textColor="@color/pira_peach" android:textSize="11sp" android:textStyle="bold" />
+   <TextView android:id="@+id/status" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Ready for first contact" android:textColor="@color/pira_ink" android:textSize="20sp" android:textStyle="bold" />
+   <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="Your model can propose. PIRA decides what may touch the physical world." android:textColor="@color/pira_muted" android:textSize="14sp" />
+  </LinearLayout>
+
+  <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="26dp" android:text="INTELLIGENCE" android:textColor="@color/pira_muted" android:textSize="11sp" android:textStyle="bold" />
+  <EditText android:id="@+id/nebiusKey" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:background="@drawable/pira_input" android:hint="Nebius Token Factory API key" android:inputType="textPassword" android:textColor="@color/pira_ink" android:textColorHint="@color/pira_muted" />
+  <CheckBox android:id="@+id/showKey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Show key while editing" android:textColor="@color/pira_muted" />
+  <Button android:id="@+id/saveKey" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="10dp" android:background="@drawable/pira_primary" android:text="CONNECT NEBIUS" android:textColor="@color/pira_night" android:textStyle="bold" />
+  <EditText android:id="@+id/model" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:background="@drawable/pira_input" android:hint="Select a discovered model" android:textColorHint="@color/pira_muted" android:textColor="@color/pira_ink" />
+  <Button android:id="@+id/discoverModels" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="8dp" android:backgroundTint="@color/pira_indigo" android:text="DISCOVER MODELS" android:textColor="@color/pira_ink" />
+  <EditText android:id="@+id/prompt" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:background="@drawable/pira_input" android:hint="Ask PIRA something" android:textColorHint="@color/pira_muted" android:textColor="@color/pira_ink" />
+  <Button android:id="@+id/testNebius" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="10dp" android:background="@drawable/pira_primary" android:text="RUN FIRST INFERENCE" android:textColor="@color/pira_night" android:textStyle="bold" />
+
+  <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="26dp" android:text="PHYSICAL WORLD" android:textColor="@color/pira_muted" android:textSize="11sp" android:textStyle="bold" />
+  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:background="@drawable/pira_card" android:orientation="vertical">
+   <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="◉  Camera / Vision     READY TO AUTHORIZE" android:textColor="@color/pira_ink" android:textSize="15sp" />
+   <Button android:id="@+id/look" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="12dp" android:backgroundTint="@color/pira_blue" android:text="LOOK AT SOMETHING" android:textColor="@color/pira_ink" />
+   <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="◌  Sensors             PLANNED" android:textColor="@color/pira_muted" android:textSize="15sp" />
+   <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="◌  Wearables           EXPERIMENTAL" android:textColor="@color/pira_muted" android:textSize="15sp" />
+  </LinearLayout>
+
+  <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="26dp" android:text="HUMAN CONTROL" android:textColor="@color/pira_muted" android:textSize="11sp" android:textStyle="bold" />
+  <Button android:id="@+id/denyTest" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="8dp" android:backgroundTint="@color/pira_indigo" android:text="RUN SECURITY DENIAL TEST" android:textColor="@color/pira_ink" />
+  <Button android:id="@+id/stop" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="8dp" android:backgroundTint="#8E315D" android:text="EMERGENCY STOP" android:textColor="@color/pira_ink" android:textStyle="bold" />
+  <TextView android:id="@+id/audit" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="No activity yet" android:textColor="@color/pira_muted" android:textSize="12sp" />
  </LinearLayout>
 </ScrollView>

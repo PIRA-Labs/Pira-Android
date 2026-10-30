@@ -1,0 +1,11 @@
+<resources>
+    <color name="pira_night">#05030F</color>
+    <color name="pira_indigo">#242A74</color>
+    <color name="pira_blue">#3D5AF1</color>
+    <color name="pira_lilac">#D7C6FF</color>
+    <color name="pira_peach">#FFB257</color>
+    <color name="pira_ink">#F7F5FF</color>
+    <color name="pira_muted">#B7BDFF</color>
+    <color name="pira_card">#12143F</color>
+    <color name="pira_line">#383A83</color>
+</resources>

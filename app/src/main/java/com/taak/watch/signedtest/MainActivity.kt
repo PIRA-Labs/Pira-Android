@@ -8,6 +8,7 @@ import android.provider.MediaStore
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
+import android.text.InputType
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -26,12 +27,16 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState); setContentView(R.layout.activity_main)
         status = findViewById(R.id.status); audit = findViewById(R.id.audit); keyInput = findViewById(R.id.nebiusKey)
         modelInput = findViewById(R.id.model); promptInput = findViewById(R.id.prompt)
+        findViewById<android.widget.CheckBox>(R.id.showKey).setOnCheckedChangeListener { _, checked ->
+            keyInput.inputType = if (checked) InputType.TYPE_CLASS_TEXT else InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            keyInput.setSelection(keyInput.text.length)
+        }
         audit.text = logger.last()
         findViewById<Button>(R.id.saveKey).setOnClickListener {
             if (keyInput.text.isNullOrBlank()) { status.text = "Enter a key to continue"; return@setOnClickListener }
             nebius.saveKey(keyInput.text.toString()); keyInput.text?.clear()
             logger.record("Nebius credential provisioned (value never logged)")
-            status.text = "Model connection configured — hardware access remains separate"; audit.text = logger.last()
+            status.text = "Credential saved — discover models to verify connection"; findViewById<TextView>(R.id.connectionState).text = "●  SAVED"; audit.text = logger.last()
         }
         findViewById<Button>(R.id.testNebius).setOnClickListener { runNebiusTest() }
         findViewById<Button>(R.id.discoverModels).setOnClickListener { discoverModels() }
@@ -49,7 +54,7 @@ class MainActivity : AppCompatActivity() {
         if (!nebius.hasKey()) { status.text = "Connect a Nebius key first"; return }
         status.text = "Discovering models…"
         Thread {
-            try { val response = nebius.models(); runOnUiThread { status.text = "Available models:\n${response.take(1800)}"; logger.record("Nebius model discovery completed"); audit.text = logger.last() } }
+            try { val response = nebius.models(); runOnUiThread { status.text = "Available models:\n${response.take(1800)}"; findViewById<TextView>(R.id.connectionState).text = "●  CONNECTED"; logger.record("Nebius model discovery completed"); audit.text = logger.last() } }
             catch (error: Exception) { runOnUiThread { status.text = "Model discovery error: ${error.message ?: error.javaClass.simpleName}"; logger.record("Nebius model discovery failed"); audit.text = logger.last() } }
         }.start()
     }
