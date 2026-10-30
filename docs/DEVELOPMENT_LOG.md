@@ -38,4 +38,4 @@
 - Reworked the playful surface toward a premium industrial instrument: graphite/midnight surfaces, muted lavender/blue active accents, restrained peach, thin outlines, tighter geometry, and no emoji decoration.
 - Preserved the four-action information architecture and emergency stop.
 - Kept the Pirophone GLB as a future enhancement because the web repository does not provide an independent transparent PNG and Android has no 3D renderer dependency.
-- Build and unit tests pass. Physical screenshot iteration is pending renewed USB authorization on the HONOR device.
+- Build and unit tests pass. After renewed USB authorization, the refined APK was installed and its home screen was captured on the HONOR VNE-LX3; the resulting composition shows restrained graphite surfaces, precise accent outlines, four primary actions, and a distinct emergency stop.
