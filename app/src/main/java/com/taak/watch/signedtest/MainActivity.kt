@@ -9,6 +9,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.text.InputType
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -27,6 +28,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState); setContentView(R.layout.activity_main)
         status = findViewById(R.id.status); audit = findViewById(R.id.audit); keyInput = findViewById(R.id.nebiusKey)
         modelInput = findViewById(R.id.model); promptInput = findViewById(R.id.prompt)
+        findViewById<Button>(R.id.myBrain).setOnClickListener { showPanel(R.id.brainPanel) }
+        findViewById<Button>(R.id.myEyes).setOnClickListener { showPanel(R.id.eyesPanel) }
+        findViewById<Button>(R.id.mySafety).setOnClickListener { showPanel(R.id.safetyPanel) }
+        findViewById<Button>(R.id.myVoice).setOnClickListener { status.text = "My voice is coming soon — nothing is enabled yet" }
         findViewById<android.widget.CheckBox>(R.id.showKey).setOnCheckedChangeListener { _, checked ->
             keyInput.inputType = if (checked) InputType.TYPE_CLASS_TEXT else InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
             keyInput.setSelection(keyInput.text.length)
@@ -49,6 +54,9 @@ class MainActivity : AppCompatActivity() {
             getSharedPreferences("pira_security", MODE_PRIVATE).edit().putBoolean("emergency_stop", true).apply()
             logger.record("Emergency stop enabled"); status.text = "EMERGENCY STOP ACTIVE — execution blocked"; audit.text = logger.last()
         }
+    }
+    private fun showPanel(panelId: Int) {
+        listOf(R.id.brainPanel, R.id.eyesPanel, R.id.safetyPanel).forEach { findViewById<View>(it).visibility = if (it == panelId) View.VISIBLE else View.GONE }
     }
     private fun discoverModels() {
         if (!nebius.hasKey()) { status.text = "Connect a Nebius key first"; return }
