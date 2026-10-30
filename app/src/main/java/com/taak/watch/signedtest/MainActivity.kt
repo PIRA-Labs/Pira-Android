@@ -264,7 +264,7 @@ class MainActivity : AppCompatActivity() {
                 is JSONObject -> {
                     val direct = listOf("content", "text", "output", "answer").firstNotNullOfOrNull { key -> if (value.has(key)) read(value.get(key)) else null }
                     if (!direct.isNullOrBlank()) return direct
-                    value.keys().forEach { key -> val nested = read(value.get(key)); if (nested.isNotBlank()) return nested }
+                    listOf("choices", "message", "delta", "data", "response").forEach { key -> if (value.has(key)) { val nested = read(value.get(key)); if (nested.isNotBlank()) return nested } }
                 }
                 is JSONArray -> {
                     val parts = (0 until value.length()).map { read(value.get(it)) }.filter { it.isNotBlank() }
