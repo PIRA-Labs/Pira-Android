@@ -10,6 +10,7 @@ This is a new isolated Android workspace. The original `taak-companion` reposito
 - Mission 4 live check: unauthenticated `GET /v1/models` returned HTTP 401 (`token is not present`); no NVIDIA model ID has been confirmed for this account.
 - Physical install: `ai.pira.android` installed and launched on authorized HONOR VNE-LX3 / Android 14 / API 34; legacy package preserved.
 - Native product UI: brand-aligned XML/AppCompat redesign verified by physical screenshot and crash-filtered logcat; live Nebius status remains honest until authenticated discovery succeeds.
+- Precision Play: premium graphite instrument-panel treatment applied while preserving simple four-action home; mascot GLB intentionally deferred pending lightweight asset rendering.
 
 ### Inherited research
 

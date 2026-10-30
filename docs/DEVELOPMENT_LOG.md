@@ -32,3 +32,10 @@
 - Added a clear intelligence onboarding hierarchy, real connection-state vocabulary, model discovery, first inference action, physical-world capability status, and always-visible emergency stop.
 - Added API-key show/hide editing control while preserving Keystore storage and existing networking/policy code.
 - Verified on the physical HONOR VNE-LX3: debug build/tests passed, APK installed, activity launched, screenshot captured, and filtered logcat showed no fatal exception.
+
+## Mission 4.4 — Precision Play refinement
+
+- Reworked the playful surface toward a premium industrial instrument: graphite/midnight surfaces, muted lavender/blue active accents, restrained peach, thin outlines, tighter geometry, and no emoji decoration.
+- Preserved the four-action information architecture and emergency stop.
+- Kept the Pirophone GLB as a future enhancement because the web repository does not provide an independent transparent PNG and Android has no 3D renderer dependency.
+- Build and unit tests pass. Physical screenshot iteration is pending renewed USB authorization on the HONOR device.
