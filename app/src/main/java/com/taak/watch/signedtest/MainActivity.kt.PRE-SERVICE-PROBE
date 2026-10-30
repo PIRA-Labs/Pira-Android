@@ -1,0 +1,78 @@
+package com.taak.watch.signedtest
+
+import android.os.Bundle
+import android.widget.Button
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+
+import com.xiaomi.xms.wearable.Wearable
+import com.xiaomi.xms.wearable.message.OnMessageReceivedListener
+import com.xiaomi.xms.wearable.node.Node
+
+class MainActivity : AppCompatActivity() {
+
+    private var curNode: Node? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        val status = findViewById<TextView>(R.id.status)
+        val lastMessage = findViewById<TextView>(R.id.lastMessage)
+        val sendTest = findViewById<Button>(R.id.sendTest)
+
+        status.text = "Status: XMS starting..."
+        lastMessage.text = "Last message: —"
+
+        val nodeApi = Wearable.getNodeApi(applicationContext)
+        val messageApi = Wearable.getMessageApi(applicationContext)
+
+        val messageListener = OnMessageReceivedListener { did, message ->
+            runOnUiThread {
+                lastMessage.text = "Last message: ${String(message)}"
+                status.text = "Status: message received"
+            }
+        }
+
+        nodeApi.connectedNodes
+            .addOnSuccessListener { nodes ->
+                if (nodes.isNotEmpty()) {
+                    curNode = nodes[0]
+
+                    status.text = "Status: watch found"
+
+                    messageApi.addListener(
+                        curNode!!.id,
+                        messageListener
+                    ).addOnSuccessListener {
+                        status.text = "Status: LISTENING"
+                    }.addOnFailureListener {
+                        status.text = "Listener failed: ${it.message}"
+                    }
+
+                } else {
+                    status.text = "Status: NO WATCH NODE"
+                }
+            }
+            .addOnFailureListener {
+                status.text = "Node failed: ${it.message}"
+            }
+
+        sendTest.setOnClickListener {
+            val node = curNode
+
+            if (node == null) {
+                lastMessage.text = "Last message: no watch node"
+            } else {
+                messageApi.sendMessage(
+                    node.id,
+                    "miau-from-android".toByteArray()
+                ).addOnSuccessListener {
+                    lastMessage.text = "Sent: miau-from-android"
+                }.addOnFailureListener {
+                    lastMessage.text = "Send failed: ${it.message}"
+                }
+            }
+        }
+    }
+}

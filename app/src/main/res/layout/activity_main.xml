@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent">
+ <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="24dp">
+  <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="PIRA" android:textSize="34sp" android:textStyle="bold" />
+  <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Physical Intelligence Runtime for Agents\nYour agent proposes. You decide." android:textSize="18sp" android:layout_marginTop="8dp" />
+  <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="SECURITY\nModel access never grants hardware access. Every capability is typed, scoped, and audited." android:layout_marginTop="24dp" />
+  <EditText android:id="@+id/nebiusKey" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Nebius API key" android:inputType="textPassword" android:layout_marginTop="20dp" />
+  <Button android:id="@+id/saveKey" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="CONNECT MODEL" />
+  <EditText android:id="@+id/model" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Nebius model ID (from /v1/models)" android:layout_marginTop="12dp" />
+  <EditText android:id="@+id/prompt" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Ask the model something" />
+  <Button android:id="@+id/testNebius" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="TEST NEBIUS TEXT" />
+  <Button android:id="@+id/look" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="LOOK AT SOMETHING" android:layout_marginTop="16dp" />
+  <Button android:id="@+id/denyTest" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="RUN SECURITY DENIAL TEST" android:layout_marginTop="8dp" />
+  <Button android:id="@+id/stop" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="EMERGENCY STOP" android:layout_marginTop="8dp" />
+  <TextView android:id="@+id/status" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Ready — no capabilities authorized" android:layout_marginTop="20dp" />
+  <TextView android:id="@+id/audit" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="No activity yet" android:layout_marginTop="12dp" />
+ </LinearLayout>
+</ScrollView>

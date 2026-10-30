@@ -1,0 +1,117 @@
+package com.taak.watch.signedtest
+
+import android.os.Bundle
+import android.widget.Button
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+
+import com.xiaomi.xms.wearable.Wearable
+import com.xiaomi.xms.wearable.message.OnMessageReceivedListener
+import com.xiaomi.xms.wearable.auth.Permission
+import com.xiaomi.xms.wearable.node.Node
+import com.xiaomi.xms.wearable.service.OnServiceConnectionListener
+
+class MainActivity : AppCompatActivity() {
+
+    private val watchDid = "808263400"
+    private var curNode: Node? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        val status = findViewById<TextView>(R.id.status)
+        val lastMessage = findViewById<TextView>(R.id.lastMessage)
+        val sendTest = findViewById<Button>(R.id.sendTest)
+
+        val messageApi = Wearable.getMessageApi(applicationContext)
+        val authApi = Wearable.getAuthApi(applicationContext)
+        val serviceApi = Wearable.getServiceApi(applicationContext)
+
+        status.text = "Status: WAITING FOR XMS"
+        lastMessage.text = "DID bypass: $watchDid"
+
+        val serviceListener = object : OnServiceConnectionListener {
+
+            override fun onServiceConnected() {
+                runOnUiThread {
+                    status.text = "Status: XMS CONNECTED / DID BYPASS"
+
+                    // We already know this DID belongs to the connected Redmi Watch 4.
+                    curNode = Node(watchDid, "Redmi Watch 4")
+
+                    val messageListener =
+                        OnMessageReceivedListener { did, message ->
+                            runOnUiThread {
+                                status.text = "Status: MESSAGE RECEIVED"
+                                lastMessage.text =
+                                    "From $did: ${String(message)}"
+                            }
+                        }
+
+                    status.text = "Status: REQUESTING DEVICE_MANAGER..."
+
+                    authApi.requestPermission(
+                        watchDid,
+                        Permission.DEVICE_MANAGER
+                    ).addOnSuccessListener {
+                        runOnUiThread {
+                            status.text = "Status: PERMISSION RESPONSE OK"
+                        }
+
+                        messageApi.addListener(
+                            watchDid,
+                            messageListener
+                        ).addOnSuccessListener {
+                            runOnUiThread {
+                                status.text = "Status: LISTENER SUCCESS"
+                                lastMessage.text = "READY — DID $watchDid"
+                            }
+                        }.addOnFailureListener {
+                            runOnUiThread {
+                                status.text = "Status: LISTENER FAILED"
+                                lastMessage.text =
+                                    "${it.javaClass.simpleName}: ${it.message}"
+                            }
+                        }
+
+                    }.addOnFailureListener {
+                        runOnUiThread {
+                            status.text = "Status: PERMISSION REQUEST FAILED"
+                            lastMessage.text =
+                                "${it.javaClass.simpleName}: ${it.message}"
+                        }
+                    }
+                }
+            }
+
+            override fun onServiceDisconnected() {
+                runOnUiThread {
+                    status.text = "Status: XMS DISCONNECTED"
+                }
+            }
+        }
+
+        serviceApi.registerServiceConnectionListener(serviceListener)
+
+        sendTest.setOnClickListener {
+            status.text = "Status: SENDING..."
+
+            messageApi.sendMessage(
+                watchDid,
+                "miau-from-android".toByteArray()
+            ).addOnSuccessListener {
+                runOnUiThread {
+                    status.text = "Status: SEND SUCCESS"
+                    lastMessage.text = "Sent: miau-from-android"
+                }
+            }.addOnFailureListener {
+                runOnUiThread {
+                    status.text = "Status: SEND FAILED"
+                    lastMessage.text =
+                        "${it.javaClass.simpleName}: ${it.message}"
+                }
+            }
+        }
+    }
+}

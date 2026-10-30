@@ -1,0 +1,102 @@
+package com.taak.watch.signedtest
+
+import android.os.Bundle
+import android.widget.Button
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+
+import com.xiaomi.xms.wearable.Wearable
+import com.xiaomi.xms.wearable.message.OnMessageReceivedListener
+import com.xiaomi.xms.wearable.node.Node
+import com.xiaomi.xms.wearable.service.OnServiceConnectionListener
+
+class MainActivity : AppCompatActivity() {
+
+    private var curNode: Node? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        val status = findViewById<TextView>(R.id.status)
+        val lastMessage = findViewById<TextView>(R.id.lastMessage)
+        val sendTest = findViewById<Button>(R.id.sendTest)
+
+        val nodeApi = Wearable.getNodeApi(applicationContext)
+        val messageApi = Wearable.getMessageApi(applicationContext)
+        val serviceApi = Wearable.getServiceApi(applicationContext)
+
+        status.text = "Status: XMS SERVICE PROBE"
+        lastMessage.text = "Last message: —"
+
+        val serviceListener = object : OnServiceConnectionListener {
+
+            override fun onServiceConnected() {
+                runOnUiThread {
+                    status.text = "Status: XMS CONNECTED — querying nodes..."
+
+                    nodeApi.connectedNodes
+                        .addOnSuccessListener { nodes ->
+
+                            if (nodes.isEmpty()) {
+                                status.text = "Status: XMS CONNECTED / 0 NODES"
+                                return@addOnSuccessListener
+                            }
+
+                            curNode = nodes[0]
+
+                            status.text = "Status: NODE FOUND — registering listener"
+
+                            val messageListener =
+                                OnMessageReceivedListener { did, message ->
+                                    runOnUiThread {
+                                        status.text = "Status: MESSAGE RECEIVED"
+                                        lastMessage.text =
+                                            "Last message: ${String(message)}"
+                                    }
+                                }
+
+                            messageApi.addListener(
+                                curNode!!.id,
+                                messageListener
+                            ).addOnSuccessListener {
+                                status.text = "Status: LISTENING"
+                            }.addOnFailureListener {
+                                status.text =
+                                    "Listener failed: ${it.message}"
+                            }
+                        }
+                        .addOnFailureListener {
+                            status.text =
+                                "Node query failed: ${it.message}"
+                        }
+                }
+            }
+
+            override fun onServiceDisconnected() {
+                runOnUiThread {
+                    status.text = "Status: XMS DISCONNECTED"
+                }
+            }
+        }
+
+        serviceApi.registerServiceConnectionListener(serviceListener)
+
+        sendTest.setOnClickListener {
+            val node = curNode
+
+            if (node == null) {
+                lastMessage.text = "Last message: NO NODE"
+            } else {
+                messageApi.sendMessage(
+                    node.id,
+                    "miau-from-android".toByteArray()
+                ).addOnSuccessListener {
+                    lastMessage.text = "Sent: miau-from-android"
+                }.addOnFailureListener {
+                    lastMessage.text = "Send failed: ${it.message}"
+                }
+            }
+        }
+    }
+}
