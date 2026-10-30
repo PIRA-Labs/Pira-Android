@@ -60,3 +60,10 @@
 - Replaced raw model JSON display with a real clickable model picker. Returned IDs are parsed from the authenticated catalog, with NVIDIA/Nemotron models prioritized; selecting a row fills the model field and collapses the list.
 - Build and unit tests pass. Physical reinstall is pending renewed ADB authorization.
 - Physical verification completed after re-authorization: persisted `KEY SAVED` state and the Brain onboarding panel are visible on-device; no fatal logcat entries.
+
+## Brain information architecture correction
+
+- Separated everyday use from configuration: `ASK PIRA`, `SEARCH WEB`, and `BRAIN SETTINGS` are distinct modes.
+- Nebius/Tavily credentials and model selection are no longer shown in the default ask surface.
+- The ask surface now has one prompt and one primary action; search has its own query and source flow; settings contains provider setup.
+- Build and unit tests pass. Physical install remains pending the next authorized ADB session.

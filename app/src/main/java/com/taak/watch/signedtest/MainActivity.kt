@@ -33,12 +33,15 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState); setContentView(R.layout.activity_main)
         status = findViewById(R.id.status); audit = findViewById(R.id.audit); keyInput = findViewById(R.id.nebiusKey)
-        modelInput = findViewById(R.id.model); promptInput = findViewById(R.id.prompt)
+        modelInput = findViewById(R.id.model); promptInput = findViewById(R.id.askPrompt)
         tavilyKeyInput = findViewById(R.id.tavilyKey); searchInput = findViewById(R.id.searchQuery)
         findViewById<Button>(R.id.myBrain).setOnClickListener { showPanel(R.id.brainPanel) }
         findViewById<Button>(R.id.myEyes).setOnClickListener { showPanel(R.id.eyesPanel) }
         findViewById<Button>(R.id.mySafety).setOnClickListener { showPanel(R.id.safetyPanel) }
         findViewById<Button>(R.id.myVoice).setOnClickListener { status.text = "My voice is coming soon — nothing is enabled yet" }
+        findViewById<Button>(R.id.askMode).setOnClickListener { showBrainMode(R.id.askContent) }
+        findViewById<Button>(R.id.searchMode).setOnClickListener { showBrainMode(R.id.searchContent) }
+        findViewById<Button>(R.id.settingsMode).setOnClickListener { showBrainMode(R.id.brainConfig) }
         findViewById<android.widget.CheckBox>(R.id.showKey).setOnCheckedChangeListener { _, checked ->
             keyInput.inputType = if (checked) InputType.TYPE_CLASS_TEXT else InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
             keyInput.setSelection(keyInput.text.length)
@@ -83,6 +86,10 @@ class MainActivity : AppCompatActivity() {
     }
     private fun showPanel(panelId: Int) {
         listOf(R.id.brainPanel, R.id.eyesPanel, R.id.safetyPanel).forEach { findViewById<View>(it).visibility = if (it == panelId) View.VISIBLE else View.GONE }
+    }
+    private fun showBrainMode(modeId: Int) {
+        listOf(R.id.askContent, R.id.searchContent, R.id.brainConfig).forEach { findViewById<View>(it).visibility = if (it == modeId) View.VISIBLE else View.GONE }
+        status.text = when (modeId) { R.id.searchContent -> "Search is user-triggered and source-backed"; R.id.brainConfig -> "Brain settings"; else -> "Ask PIRA anything" }
     }
     private fun discoverModels() {
         if (!nebius.hasKey()) { status.text = "Connect a Nebius key first"; return }
