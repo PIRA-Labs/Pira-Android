@@ -59,3 +59,4 @@
 - Persisted Nebius credential state is now restored on app launch (`KEY SAVED`) instead of reverting to the empty initial presentation.
 - Replaced raw model JSON display with a real clickable model picker. Returned IDs are parsed from the authenticated catalog, with NVIDIA/Nemotron models prioritized; selecting a row fills the model field and collapses the list.
 - Build and unit tests pass. Physical reinstall is pending renewed ADB authorization.
+- Physical verification completed after re-authorization: persisted `KEY SAVED` state and the Brain onboarding panel are visible on-device; no fatal logcat entries.
