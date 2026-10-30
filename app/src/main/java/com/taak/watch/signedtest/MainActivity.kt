@@ -12,6 +12,7 @@ import android.widget.TextView
 import android.text.InputType
 import android.view.View
 import android.graphics.Color
+import android.graphics.Bitmap
 import android.view.Gravity
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
@@ -30,6 +31,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var searchInput: EditText
     private lateinit var chatTranscript: TextView
     private lateinit var visionTranscript: TextView
+    private lateinit var eyesQuestion: EditText
+    private var latestPhoto: Bitmap? = null
     private var selectedModelId: String? = null
     private val policy by lazy { PolicyEngine { getSharedPreferences("pira_security", MODE_PRIVATE).getBoolean("emergency_stop", false) } }
     private val logger by lazy { AuditLogger(this) }
@@ -42,6 +45,7 @@ class MainActivity : AppCompatActivity() {
         getSharedPreferences("pira_config", MODE_PRIVATE).getString("model", null)?.let { selectedModelId = it; modelInput.setText(humanModelName(it)) }
         tavilyKeyInput = findViewById(R.id.tavilyKey); searchInput = findViewById(R.id.searchQuery)
         chatTranscript = findViewById(R.id.chatTranscript); visionTranscript = findViewById(R.id.visionTranscript)
+        eyesQuestion = findViewById(R.id.eyesQuestion)
         findViewById<Button>(R.id.myBrain).setOnClickListener { showPanel(R.id.brainPanel); showBrainMode(R.id.askContent) }
         findViewById<Button>(R.id.myEyes).setOnClickListener { showPanel(R.id.eyesPanel) }
         findViewById<Button>(R.id.mySafety).setOnClickListener { showPanel(R.id.safetyPanel) }
@@ -78,6 +82,8 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.investigate).setOnClickListener { runContextualResearch() }
         findViewById<Button>(R.id.discoverModels).setOnClickListener { discoverModels() }
         findViewById<Button>(R.id.look).setOnClickListener { requestCameraAction() }
+        findViewById<Button>(R.id.analyzeEyes).setOnClickListener { analyzePhoto() }
+        findViewById<Button>(R.id.eyesVoice).setOnClickListener { startVoiceNote(voiceRequest + 1) }
         findViewById<Button>(R.id.denyTest).setOnClickListener {
             val decision = policy.evaluate(ActionProposal(Capability.CAMERA_LOOK), null)
             logger.record("Denied adversarial proposal: ${decision.reason}"); status.text = "DENIED: ${decision.reason}"; audit.text = logger.last()
@@ -195,13 +201,13 @@ class MainActivity : AppCompatActivity() {
             catch (error: Exception) { runOnUiThread { status.text = "Nebius error: ${error.message ?: error.javaClass.simpleName}"; logger.record("Nebius request denied/failed"); audit.text = logger.last() } }
         }.start()
     }
-    private fun startVoiceNote() {
+    private fun startVoiceNote(requestCode: Int = voiceRequest) {
         if (!nebius.hasKey() || selectedModelId.isNullOrBlank()) { status.text = "Connect your brain and choose a model first"; return }
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
             putExtra(RecognizerIntent.EXTRA_PROMPT, "Talk to PIRA")
         }
-        try { startActivityForResult(intent, voiceRequest) } catch (_: Exception) { status.text = "Voice input is not available on this device" }
+        try { startActivityForResult(intent, requestCode) } catch (_: Exception) { status.text = "Voice input is not available on this device" }
     }
     private fun requestCameraAction() {
         val parameters = mapOf("prompt" to "user initiated")
@@ -218,9 +224,11 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == cameraRequest && resultCode == RESULT_OK) {
+            latestPhoto = data?.extras?.get("data") as? Bitmap
             visionTranscript.visibility = View.VISIBLE
-            visionTranscript.text = "PIRA\nPhoto captured safely. Vision analysis will appear here when a vision model is selected."
-            status.text = "Photo captured — ready for a user-approved look"
+            visionTranscript.text = "PIRA\nPhoto captured. Now ask me what to look for."
+            status.text = "Photo ready — ask your question"
+            if (eyesQuestion.text.isNotBlank()) analyzePhoto()
             logger.record("Authorized camera capture completed; image is not retained")
             audit.text = logger.last()
         }
@@ -228,6 +236,18 @@ class MainActivity : AppCompatActivity() {
             val spoken = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull().orEmpty()
             if (spoken.isNotBlank()) { promptInput.setText(spoken); sendChatMessage(spoken) }
         }
+        if (requestCode == voiceRequest + 1 && resultCode == RESULT_OK) {
+            val spoken = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull().orEmpty()
+            if (spoken.isNotBlank()) { eyesQuestion.setText(spoken); requestCameraAction() }
+        }
+    }
+
+    private fun analyzePhoto() {
+        val image = latestPhoto ?: run { status.text = "Take a photo first"; return }
+        val model = selectedModelId ?: run { status.text = "Choose a vision model in Connections"; return }
+        val question = eyesQuestion.text.toString().trim().ifBlank { "What do you see?" }
+        status.text = "PIRA is looking…"
+        Thread { try { val response = nebius.chatVision(model, question, image); runOnUiThread { visionTranscript.text = "You\n$question\n\nPIRA\n${humanizeModelResponse(response)}"; status.text = "PIRA answered about your photo"; logger.record("Authorized vision request completed; image not retained"); audit.text = logger.last() } } catch (error: Exception) { runOnUiThread { status.text = "Vision error: ${error.message ?: error.javaClass.simpleName}"; logger.record("Vision request failed"); audit.text = logger.last() } } }.start()
     }
 
     private fun humanizeModelResponse(raw: String): String {

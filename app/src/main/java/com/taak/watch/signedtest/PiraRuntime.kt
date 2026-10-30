@@ -5,6 +5,8 @@ import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
 import java.nio.charset.StandardCharsets
+import android.graphics.Bitmap
+import java.io.ByteArrayOutputStream
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -72,6 +74,13 @@ class NebiusClient(private val context: Context) {
     fun models(): String = request("GET", "/models", null)
     fun chat(model: String, prompt: String): String {
         val body = "{\"model\":\"${json(model)}\",\"messages\":[{\"role\":\"user\",\"content\":\"${json(prompt)}\"}],\"max_tokens\":300}"
+        return request("POST", "/chat/completions", body)
+    }
+    fun chatVision(model: String, prompt: String, image: Bitmap): String {
+        val output = ByteArrayOutputStream()
+        image.compress(Bitmap.CompressFormat.JPEG, 82, output)
+        val encoded = Base64.encodeToString(output.toByteArray(), Base64.NO_WRAP)
+        val body = "{\"model\":\"${json(model)}\",\"messages\":[{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":\"${json(prompt)}\"},{\"type\":\"image_url\",\"image_url\":{\"url\":\"data:image/jpeg;base64,$encoded\"}}]}],\"max_tokens\":300}"
         return request("POST", "/chat/completions", body)
     }
     private fun request(method: String, path: String, body: String?): String {
