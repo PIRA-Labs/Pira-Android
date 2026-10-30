@@ -52,3 +52,4 @@
 - Added an independent Keystore alias and preference namespace for the Tavily key; the Nebius credential path is unchanged.
 - Added typed `WebSearchProposal`/`WebSearchAuthorization`, exact parameter matching, expiry/replay checks, fixed endpoint, result limit, and emergency-stop enforcement.
 - Added minimal on-device onboarding/search controls. No live Tavily result or bonus-award compliance is claimed until a real response is received.
+- Physical smoke test: Tavily APK installed/launched on HONOR VNE-LX3; screenshot captured at `/tmp/pira-tavily.png`; no fatal logcat entries. Legacy package remained installed.
