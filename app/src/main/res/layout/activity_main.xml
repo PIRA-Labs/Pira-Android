@@ -22,6 +22,7 @@
    </LinearLayout>
    <LinearLayout android:id="@+id/brainConfig" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="Connect once. PIRA keeps the key protected." android:textColor="@color/pira_muted" android:textSize="13sp" />
+   <TextView android:id="@+id/nebiusConnected" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp" android:text="●  NEBIUS CONNECTED" android:textColor="@color/pira_peach" android:textSize="16sp" android:textStyle="bold" android:visibility="gone" />
    <EditText android:id="@+id/nebiusKey" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="12dp" android:background="@drawable/pira_input" android:hint="Paste your Nebius key" android:inputType="textPassword" android:textColor="@color/pira_ink" android:textColorHint="@color/pira_muted" />
    <CheckBox android:id="@+id/showKey" android:layout_width="wrap_content" android:layout_height="48dp" android:text="Show while typing" android:textColor="@color/pira_muted" />
    <Button android:id="@+id/saveKey" android:layout_width="match_parent" android:layout_height="64dp" android:background="@drawable/pira_primary" android:text="CONNECT MY BRAIN" android:textColor="@color/pira_night" android:textStyle="bold" />

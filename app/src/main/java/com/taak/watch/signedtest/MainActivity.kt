@@ -26,6 +26,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var promptInput: EditText
     private lateinit var tavilyKeyInput: EditText
     private lateinit var searchInput: EditText
+    private var selectedModelId: String? = null
     private val policy by lazy { PolicyEngine { getSharedPreferences("pira_security", MODE_PRIVATE).getBoolean("emergency_stop", false) } }
     private val logger by lazy { AuditLogger(this) }
     private val nebius by lazy { NebiusClient(this) }
@@ -34,7 +35,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState); setContentView(R.layout.activity_main)
         status = findViewById(R.id.status); audit = findViewById(R.id.audit); keyInput = findViewById(R.id.nebiusKey)
         modelInput = findViewById(R.id.model); promptInput = findViewById(R.id.askPrompt)
-        getSharedPreferences("pira_config", MODE_PRIVATE).getString("model", null)?.let { modelInput.setText(it) }
+        getSharedPreferences("pira_config", MODE_PRIVATE).getString("model", null)?.let { selectedModelId = it; modelInput.setText(humanModelName(it)) }
         tavilyKeyInput = findViewById(R.id.tavilyKey); searchInput = findViewById(R.id.searchQuery)
         findViewById<Button>(R.id.myBrain).setOnClickListener { showPanel(R.id.brainPanel); showBrainMode(R.id.askContent) }
         findViewById<Button>(R.id.myEyes).setOnClickListener { showPanel(R.id.eyesPanel) }
@@ -52,6 +53,10 @@ class MainActivity : AppCompatActivity() {
         if (nebius.hasKey()) {
             findViewById<TextView>(R.id.connectionState).text = "●  KEY SAVED"
             status.text = "Your brain is ready — discover models"
+            findViewById<TextView>(R.id.nebiusConnected).visibility = View.VISIBLE
+            keyInput.visibility = View.GONE
+            findViewById<View>(R.id.showKey).visibility = View.GONE
+            findViewById<Button>(R.id.saveKey).visibility = View.GONE
         }
         findViewById<Button>(R.id.saveKey).setOnClickListener {
             if (keyInput.text.isNullOrBlank()) { status.text = "Enter a key to continue"; return@setOnClickListener }
@@ -122,10 +127,10 @@ class MainActivity : AppCompatActivity() {
         if (prioritized.isEmpty()) { status.text = "No selectable models were returned"; return }
         prioritized.take(20).forEach { id ->
             val button = Button(this).apply {
-                text = if (id.contains("nemotron", true)) "NVIDIA NEMOTRON\n$id" else id
-                setTextColor(Color.WHITE); gravity = Gravity.START or Gravity.CENTER_VERTICAL; minHeight = 56; isAllCaps = false
+                text = if (id.contains("nemotron", true)) "${humanModelName(id)}\nNVIDIA  ·  ${if (id.contains("vl", true)) "VISION + TEXT" else "TEXT"}" else "${humanModelName(id)}\nAvailable model"
+                setTextColor(Color.WHITE); gravity = Gravity.START or Gravity.CENTER_VERTICAL; minHeight = 72; isAllCaps = false; textSize = 14f; setPadding(18, 8, 18, 8)
                 backgroundTintList = android.content.res.ColorStateList.valueOf(getColor(R.color.pira_indigo))
-                setOnClickListener { modelInput.setText(id); getSharedPreferences("pira_config", MODE_PRIVATE).edit().putString("model", id).apply(); status.text = "Brain selected: ${humanModelName(id)}"; options.visibility = View.GONE }
+                setOnClickListener { selectedModelId = id; modelInput.setText(humanModelName(id)); getSharedPreferences("pira_config", MODE_PRIVATE).edit().putString("model", id).apply(); status.text = "Brain selected: ${humanModelName(id)}"; options.visibility = View.GONE }
             }
             options.addView(button, LinearLayout.LayoutParams(-1, 64).apply { topMargin = 6 })
         }
@@ -138,7 +143,7 @@ class MainActivity : AppCompatActivity() {
     }
     private fun runNebiusTest() {
         if (!nebius.hasKey()) { status.text = "Connect a Nebius key first"; return }
-        val model = modelInput.text.toString().trim(); val prompt = promptInput.text.toString().trim()
+        val model = selectedModelId ?: ""; val prompt = promptInput.text.toString().trim()
         if (model.isEmpty() || prompt.isEmpty()) { status.text = "Enter a model ID and prompt"; return }
         status.text = "Calling Nebius…"
         Thread {
