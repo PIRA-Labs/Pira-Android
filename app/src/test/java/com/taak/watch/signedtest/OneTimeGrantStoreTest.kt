@@ -14,4 +14,10 @@ class OneTimeGrantStoreTest {
         val store = InMemoryGrantStore(ttlMs = 5); val issued = store.issue(proposal, nowMs = 10)
         assertNull(store.claim(issued.nonce, nowMs = 15))
     }
+    @Test fun coordinatorCannotAuthorizeTheSameGrantTwice() {
+        val store = InMemoryGrantStore(); val coordinator = TtsActionCoordinator(PolicyEngine(), store)
+        val action = TtsProposal("Hello"); val grant = coordinator.request(action)
+        kotlin.test.assertEquals(true, coordinator.authorizeAndConsume(action, grant.nonce).allowed)
+        kotlin.test.assertEquals(false, coordinator.authorizeAndConsume(action, grant.nonce).allowed)
+    }
 }

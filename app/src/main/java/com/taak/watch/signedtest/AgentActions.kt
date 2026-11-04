@@ -45,3 +45,13 @@ class InMemoryGrantStore(private val ttlMs: Long = 60_000L) : OneTimeGrantStore 
         if (grant.expiresAtMs <= nowMs) null else grant
     }
 }
+
+/** Application-layer boundary between untrusted proposal parsing and a trusted executor. */
+class TtsActionCoordinator(
+    private val policy: PolicyEngine,
+    private val grants: OneTimeGrantStore
+) {
+    fun request(proposal: TtsProposal): Authorization = grants.issue(proposal.asAction())
+    fun authorizeAndConsume(proposal: TtsProposal, nonce: String): Decision =
+        policy.evaluate(proposal.asAction(), grants.claim(nonce))
+}

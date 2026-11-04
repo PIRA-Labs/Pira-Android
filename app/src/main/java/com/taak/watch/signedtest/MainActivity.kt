@@ -43,6 +43,7 @@ class MainActivity : AppCompatActivity() {
     private val nebius by lazy { NebiusClient(this) }
     private val tavily by lazy { TavilyClient(this) }
     private val grants = InMemoryGrantStore()
+    private val ttsActions by lazy { TtsActionCoordinator(policy, grants) }
     private lateinit var tts: NativeTextToSpeech
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState); setContentView(R.layout.activity_main)
@@ -128,9 +129,8 @@ class MainActivity : AppCompatActivity() {
                 status.text = "Speech request denied"; audit.text = logger.last()
             }
             .setPositiveButton("Allow once") { _, _ ->
-                val issued = grants.issue(proposal)
-                val grant = grants.claim(issued.nonce)
-                val decision = policy.evaluate(proposal, grant)
+                val issued = ttsActions.request(ttsProposal)
+                val decision = ttsActions.authorizeAndConsume(ttsProposal, issued.nonce)
                 if (!decision.allowed) {
                     logger.record("Native speech blocked: ${decision.reason}")
                     status.text = "DENIED: ${decision.reason}"; audit.text = logger.last()
