@@ -2,6 +2,7 @@ package com.taak.watch.signedtest
 
 import android.Manifest
 import android.content.Intent
+import android.app.AlertDialog
 import android.speech.RecognizerIntent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -34,12 +35,14 @@ class MainActivity : AppCompatActivity() {
     private lateinit var chatTranscript: TextView
     private lateinit var visionTranscript: TextView
     private lateinit var eyesQuestion: EditText
+    private lateinit var speechInput: EditText
     private var latestPhoto: Bitmap? = null
     private var selectedModelId: String? = null
     private val policy by lazy { PolicyEngine { getSharedPreferences("pira_security", MODE_PRIVATE).getBoolean("emergency_stop", false) } }
     private val logger by lazy { AuditLogger(this) }
     private val nebius by lazy { NebiusClient(this) }
     private val tavily by lazy { TavilyClient(this) }
+    private lateinit var tts: NativeTextToSpeech
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState); setContentView(R.layout.activity_main)
         status = findViewById(R.id.status); audit = findViewById(R.id.audit); keyInput = findViewById(R.id.nebiusKey)
@@ -48,10 +51,12 @@ class MainActivity : AppCompatActivity() {
         tavilyKeyInput = findViewById(R.id.tavilyKey); searchInput = findViewById(R.id.searchQuery)
         chatTranscript = findViewById(R.id.chatTranscript); visionTranscript = findViewById(R.id.visionTranscript)
         eyesQuestion = findViewById(R.id.eyesQuestion)
+        speechInput = findViewById(R.id.speechInput)
+        tts = NativeTextToSpeech(this) { available -> runOnUiThread { if (!available) status.text = "Native speech is unavailable on this device" } }
         findViewById<Button>(R.id.myBrain).setOnClickListener { showPanel(R.id.brainPanel); showBrainMode(R.id.askContent) }
         findViewById<Button>(R.id.myEyes).setOnClickListener { showPanel(R.id.eyesPanel) }
         findViewById<Button>(R.id.mySafety).setOnClickListener { showPanel(R.id.safetyPanel) }
-        findViewById<Button>(R.id.myVoice).setOnClickListener { status.text = "My voice is coming soon — nothing is enabled yet" }
+        findViewById<Button>(R.id.myVoice).setOnClickListener { showPanel(R.id.voicePanel); status.text = "Review the exact words before PIRA speaks" }
         findViewById<Button>(R.id.askMode).setOnClickListener { showBrainMode(R.id.askContent) }
         findViewById<Button>(R.id.connections).setOnClickListener { showConnections() }
         findViewById<Button>(R.id.closeConnections).setOnClickListener { closeConnections() }
@@ -85,6 +90,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.discoverModels).setOnClickListener { discoverModels() }
         findViewById<Button>(R.id.look).setOnClickListener { requestCameraAction() }
         findViewById<Button>(R.id.analyzeEyes).setOnClickListener { analyzePhoto() }
+        findViewById<Button>(R.id.requestSpeech).setOnClickListener { requestSpeechAuthorization() }
         findViewById<Button>(R.id.eyesVoice).setOnClickListener { startVoiceNote(voiceRequest + 1) }
         findViewById<Button>(R.id.denyTest).setOnClickListener {
             val decision = policy.evaluate(ActionProposal(Capability.CAMERA_LOOK), null)
@@ -94,6 +100,34 @@ class MainActivity : AppCompatActivity() {
             getSharedPreferences("pira_security", MODE_PRIVATE).edit().putBoolean("emergency_stop", true).apply()
             logger.record("Emergency stop enabled"); status.text = "EMERGENCY STOP ACTIVE — execution blocked"; audit.text = logger.last()
         }
+    }
+    override fun onDestroy() { tts.close(); super.onDestroy() }
+
+    private fun requestSpeechAuthorization() {
+        val text = speechInput.text.toString().trim()
+        if (text.isBlank()) { status.text = "Write the words you want PIRA to say"; return }
+        val proposal = ActionProposal(Capability.TEXT_TO_SPEECH, parameters = mapOf("text" to text))
+        AlertDialog.Builder(this)
+            .setTitle("Authorize native speech?")
+            .setMessage("PIRA will say aloud:\n\n“$text”\n\nThis is a one-time authorization and expires in 60 seconds.")
+            .setNegativeButton("Deny") { _, _ ->
+                logger.record("Native speech denied by user")
+                status.text = "Speech request denied"; audit.text = logger.last()
+            }
+            .setPositiveButton("Allow once") { _, _ ->
+                val grant = Authorization(Capability.TEXT_TO_SPEECH, System.currentTimeMillis() + 60_000, "tts-${System.currentTimeMillis()}", proposal.parameters)
+                val decision = policy.evaluate(proposal, grant)
+                if (!decision.allowed) {
+                    logger.record("Native speech blocked: ${decision.reason}")
+                    status.text = "DENIED: ${decision.reason}"; audit.text = logger.last()
+                } else if (tts.speak(text)) {
+                    logger.record("Native speech executed after one-time authorization")
+                    status.text = "Speaking now"; audit.text = logger.last()
+                } else {
+                    logger.record("Native speech unavailable")
+                    status.text = "Native speech is not ready; try again"; audit.text = logger.last()
+                }
+            }.show()
     }
     private fun saveTavilyKey() {
         if (tavilyKeyInput.text.isNullOrBlank()) { status.text = "Enter a Tavily key to continue"; return }
@@ -115,7 +149,7 @@ class MainActivity : AppCompatActivity() {
         runTavilySearch()
     }
     private fun showPanel(panelId: Int) {
-        listOf(R.id.brainPanel, R.id.eyesPanel, R.id.safetyPanel).forEach { findViewById<View>(it).visibility = if (it == panelId) View.VISIBLE else View.GONE }
+        listOf(R.id.brainPanel, R.id.eyesPanel, R.id.voicePanel, R.id.safetyPanel).forEach { findViewById<View>(it).visibility = if (it == panelId) View.VISIBLE else View.GONE }
     }
     private fun showBrainMode(modeId: Int) {
         findViewById<Button>(R.id.askMode).visibility = View.VISIBLE
