@@ -42,6 +42,7 @@ class MainActivity : AppCompatActivity() {
     private val logger by lazy { AuditLogger(this) }
     private val nebius by lazy { NebiusClient(this) }
     private val tavily by lazy { TavilyClient(this) }
+    private val grants = InMemoryGrantStore()
     private lateinit var tts: NativeTextToSpeech
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState); setContentView(R.layout.activity_main)
@@ -52,7 +53,10 @@ class MainActivity : AppCompatActivity() {
         chatTranscript = findViewById(R.id.chatTranscript); visionTranscript = findViewById(R.id.visionTranscript)
         eyesQuestion = findViewById(R.id.eyesQuestion)
         speechInput = findViewById(R.id.speechInput)
-        tts = NativeTextToSpeech(this) { available -> runOnUiThread { if (!available) status.text = "Native speech is unavailable on this device" } }
+        tts = NativeTextToSpeech(this, { available -> runOnUiThread { if (!available) status.text = "Native speech is unavailable on this device" } }) { event, _ -> runOnUiThread {
+            val outcome = when (event) { TtsExecutionEvent.STARTED -> "started"; TtsExecutionEvent.COMPLETED -> "completed"; TtsExecutionEvent.FAILED -> "failed"; TtsExecutionEvent.CANCELLED -> "cancelled" }
+            logger.record("Native speech $outcome"); status.text = "Native speech $outcome"; audit.text = logger.last()
+        } }
         findViewById<Button>(R.id.myBrain).setOnClickListener { showPanel(R.id.brainPanel); showBrainMode(R.id.askContent) }
         findViewById<Button>(R.id.myEyes).setOnClickListener { showPanel(R.id.eyesPanel) }
         findViewById<Button>(R.id.mySafety).setOnClickListener { showPanel(R.id.safetyPanel) }
@@ -63,6 +67,11 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.useSetup).setOnClickListener { activateSetup() }
         findViewById<Button>(R.id.clearSetup).setOnClickListener { clearSetup() }
         findViewById<Button>(R.id.devices).setOnClickListener { showPanel(R.id.eyesPanel) }
+        findViewById<Button>(R.id.navHome).setOnClickListener { hidePanels(); status.text = "PIRA device dashboard" }
+        findViewById<Button>(R.id.navChat).setOnClickListener { showPanel(R.id.brainPanel); showBrainMode(R.id.askContent) }
+        findViewById<Button>(R.id.navCapabilities).setOnClickListener { showPanel(R.id.capabilitiesPanel); status.text = "Capability availability" }
+        findViewById<Button>(R.id.navSafety).setOnClickListener { showPanel(R.id.safetyPanel); status.text = "Security controls and audit" }
+        findViewById<Button>(R.id.navSettings).setOnClickListener { showConnections() }
         findViewById<android.widget.CheckBox>(R.id.showKey).setOnCheckedChangeListener { _, checked ->
             keyInput.inputType = if (checked) InputType.TYPE_CLASS_TEXT else InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
             keyInput.setSelection(keyInput.text.length)
@@ -98,6 +107,7 @@ class MainActivity : AppCompatActivity() {
         }
         findViewById<Button>(R.id.stop).setOnClickListener {
             getSharedPreferences("pira_security", MODE_PRIVATE).edit().putBoolean("emergency_stop", true).apply()
+            tts.stop()
             logger.record("Emergency stop enabled"); status.text = "EMERGENCY STOP ACTIVE — execution blocked"; audit.text = logger.last()
         }
     }
@@ -106,22 +116,26 @@ class MainActivity : AppCompatActivity() {
     private fun requestSpeechAuthorization() {
         val text = speechInput.text.toString().trim()
         if (text.isBlank()) { status.text = "Write the words you want PIRA to say"; return }
-        val proposal = ActionProposal(Capability.TEXT_TO_SPEECH, parameters = mapOf("text" to text))
+        authorizeSpeech(TtsProposal(text), "manual request")
+    }
+    private fun authorizeSpeech(ttsProposal: TtsProposal, source: String) {
+        val proposal = ttsProposal.asAction(); val text = ttsProposal.text
         AlertDialog.Builder(this)
             .setTitle("Authorize native speech?")
-            .setMessage("PIRA will say aloud:\n\n“$text”\n\nThis is a one-time authorization and expires in 60 seconds.")
+            .setMessage("PIRA will say aloud:\n\n“$text”\n\nSource: $source\n\nThis is a one-time authorization and expires in 60 seconds.")
             .setNegativeButton("Deny") { _, _ ->
                 logger.record("Native speech denied by user")
                 status.text = "Speech request denied"; audit.text = logger.last()
             }
             .setPositiveButton("Allow once") { _, _ ->
-                val grant = Authorization(Capability.TEXT_TO_SPEECH, System.currentTimeMillis() + 60_000, "tts-${System.currentTimeMillis()}", proposal.parameters)
+                val issued = grants.issue(proposal)
+                val grant = grants.claim(issued.nonce)
                 val decision = policy.evaluate(proposal, grant)
                 if (!decision.allowed) {
                     logger.record("Native speech blocked: ${decision.reason}")
                     status.text = "DENIED: ${decision.reason}"; audit.text = logger.last()
                 } else if (tts.speak(text)) {
-                    logger.record("Native speech executed after one-time authorization")
+                    logger.record("Native speech submitted after consumed one-time authorization")
                     status.text = "Speaking now"; audit.text = logger.last()
                 } else {
                     logger.record("Native speech unavailable")
@@ -149,8 +163,9 @@ class MainActivity : AppCompatActivity() {
         runTavilySearch()
     }
     private fun showPanel(panelId: Int) {
-        listOf(R.id.brainPanel, R.id.eyesPanel, R.id.voicePanel, R.id.safetyPanel).forEach { findViewById<View>(it).visibility = if (it == panelId) View.VISIBLE else View.GONE }
+        listOf(R.id.brainPanel, R.id.eyesPanel, R.id.voicePanel, R.id.capabilitiesPanel, R.id.safetyPanel).forEach { findViewById<View>(it).visibility = if (it == panelId) View.VISIBLE else View.GONE }
     }
+    private fun hidePanels() = listOf(R.id.brainPanel, R.id.eyesPanel, R.id.voicePanel, R.id.capabilitiesPanel, R.id.safetyPanel).forEach { findViewById<View>(it).visibility = View.GONE }
     private fun showBrainMode(modeId: Int) {
         findViewById<Button>(R.id.askMode).visibility = View.VISIBLE
         listOf(R.id.askContent, R.id.brainConfig).forEach { findViewById<View>(it).visibility = if (it == modeId) View.VISIBLE else View.GONE }
@@ -233,7 +248,15 @@ class MainActivity : AppCompatActivity() {
         if (model.isEmpty() || prompt.isBlank()) return
         status.text = "Calling Nebius…"
         Thread {
-            try { val response = nebius.chat(model, prompt); runOnUiThread { chatTranscript.visibility = View.VISIBLE; val previous = chatTranscript.text.toString().trim(); val turn = "You\n$prompt\n\nPIRA\n${humanizeModelResponse(response)}"; chatTranscript.text = if (previous.isBlank()) turn else "$previous\n\n────────\n\n$turn"; promptInput.text?.clear(); status.text = "PIRA replied"; logger.record("Nebius text request completed"); audit.text = logger.last() } }
+            try { val response = nebius.proposeTextToSpeech(model, prompt); runOnUiThread {
+                val proposal = AgentActionParser.parseTtsProposal(response); val message = humanizeModelResponse(response)
+                chatTranscript.visibility = View.VISIBLE; val previous = chatTranscript.text.toString().trim()
+                val display = if (proposal == null) message else "ACTION PROPOSAL · Native speech\n\"${proposal.text}\"\n\nAuthorization required before PIRA can speak."
+                val turn = "You\n$prompt\n\nPIRA\n$display"; chatTranscript.text = if (previous.isBlank()) turn else "$previous\n\n────────\n\n$turn"
+                promptInput.text?.clear(); status.text = if (proposal == null) "PIRA replied" else "PIRA proposed a physical action"
+                logger.record(if (proposal == null) "Nebius text request completed" else "Nebius proposed native speech; awaiting authorization"); audit.text = logger.last()
+                proposal?.let { authorizeSpeech(it, "Nebius structured proposal") }
+            } }
             catch (error: Exception) { runOnUiThread { status.text = "Nebius error: ${error.message ?: error.javaClass.simpleName}"; logger.record("Nebius request denied/failed"); audit.text = logger.last() } }
         }.start()
     }

@@ -11,6 +11,7 @@ import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
+import org.json.JSONObject
 
 /** Capabilities are explicit product contracts, not strings supplied by a model. */
 enum class Capability { CAMERA_LOOK, BATTERY_READ, WEARABLE_MESSAGE, WEB_SEARCH, TEXT_TO_SPEECH }
@@ -87,6 +88,7 @@ class NebiusClient(private val context: Context) {
         val body = "{\"model\":\"${json(model)}\",\"messages\":[{\"role\":\"user\",\"content\":\"${json(prompt)}\"}],\"max_tokens\":300}"
         return request("POST", "/chat/completions", body)
     }
+    fun proposeTextToSpeech(model: String, userGoal: String): String = chat(model, """You may only propose native speech when it helps the user. Respond with ordinary helpful text, or exactly JSON: {\"pira_action\":{\"capability\":\"TEXT_TO_SPEECH\",\"text\":\"exact words\"}}. Never claim execution. User goal: $userGoal""")
     fun chatVision(model: String, prompt: String, image: Bitmap): String {
         val output = ByteArrayOutputStream()
         image.compress(Bitmap.CompressFormat.JPEG, 82, output)
@@ -131,8 +133,18 @@ class TavilyClient(private val context: Context) {
         val stream = if (code in 200..299) connection.inputStream else connection.errorStream
         val raw = stream?.bufferedReader()?.use { it.readText() }.orEmpty(); connection.disconnect()
         if (code !in 200..299 || raw.isBlank() || !raw.contains("results")) throw IllegalStateException("Tavily search failed (HTTP $code)")
-        return Regex("\\\"title\\\"\\s*:\\s*\\\"(.*?)\\\".*?\\\"url\\\"\\s*:\\s*\\\"(.*?)\\\".*?\\\"content\\\"\\s*:\\s*\\\"(.*?)\\\"", RegexOption.DOT_MATCHES_ALL).findAll(raw).take(5).map { WebSearchResult(unescape(it.groupValues[1]), unescape(it.groupValues[2]), unescape(it.groupValues[3]).take(240)) }.toList()
+        return TavilyJsonParser.parse(raw)
     }
     private fun json(value: String) = value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
-    private fun unescape(value: String) = value.replace("\\\"", "\"").replace("\\n", " ").replace("\\u0026", "&")
+}
+
+object TavilyJsonParser {
+    fun parse(raw: String): List<WebSearchResult> {
+        val results = JSONObject(raw).optJSONArray("results") ?: return emptyList()
+        return (0 until minOf(results.length(), 5)).mapNotNull { index ->
+            val item = results.optJSONObject(index) ?: return@mapNotNull null
+            val title = item.optString("title").trim(); val url = item.optString("url").trim()
+            if (title.isBlank() || url.isBlank()) null else WebSearchResult(title, url, item.optString("content").trim().take(240))
+        }
+    }
 }
