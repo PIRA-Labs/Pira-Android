@@ -1,8 +1,14 @@
-# PIRA Android v0.1 — Implementation Status
+# PIRA Android v0.2.0-beta — Implementation Status
 
 This is a new isolated Android workspace. The original `taak-companion` repository is not modified.
 
-## Verified working
+## Implemented; automated verification pending local JDK availability
+
+- Native Android text-to-speech is now a real, scoped physical capability: exact text is bounded to 500 characters, reviewed in a user confirmation dialog, granted once for 60 seconds, evaluated by the common policy engine, executed through `TextToSpeech`, and audited. Model output is not interpreted as a command.
+- Policy tests cover TTS grant binding, empty text denial, and length-bound denial alongside the prior replay, expiry, scope, parameter, and emergency-stop checks.
+- Nebius and Tavily integrations now surface non-success HTTP responses as failures instead of accepting provider error payloads as successful results.
+
+## Previously verified (v0.1 evidence)
 
 - Debug APK builds successfully with Homebrew JDK 17.
 - Policy unit tests pass, including expiry, replay, parameter binding, scope mismatch, and emergency-stop denial.
@@ -33,7 +39,7 @@ This is a new isolated Android workspace. The original `taak-companion` reposito
 ## Not implemented yet
 
 - Nebius vision request and model capability filtering.
-- Capability registry and consent UI.
+- Complete capability registry and consent UI beyond the first native TTS implementation.
 - Full revocation UI and device capability discovery UI.
 
 ## Planned first capability
